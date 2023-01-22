@@ -1,0 +1,280 @@
+2023-01-21 12:48:04,855 INFO  [main] root: Initialize server...
+2023-01-21 12:48:04,859 INFO  [main] root: Server listening on port: 8008
+2023-01-21 12:49:17,582 INFO  [main] root: Connected to localhost on port 56546
+2023-01-21 12:50:06,578 INFO  [Thread-0] root: RECEIVE 	<127.0.0.1:56546>: 'PUT,hello,world'
+2023-01-21 12:50:06,580 DEBUG [Thread-0] root: Trying to PUT hello with value world
+
+2023-01-21 12:50:06,582 INFO  [Thread-0] root: SEND 	<127.0.0.1:56546>: 'PUT_SUCCESS,sample key,
+'
+2023-01-21 12:54:02,684 INFO  [main] root: Initialize server...
+2023-01-21 12:54:02,688 INFO  [main] root: Server listening on port: 8008
+2023-01-21 12:54:16,621 INFO  [main] root: Connected to localhost on port 56566
+2023-01-21 12:54:32,454 INFO  [Thread-0] root: RECEIVE 	<127.0.0.1:56566>: 'GET,hello,'
+2023-01-21 12:54:32,456 DEBUG [Thread-0] root: Trying to GET hello
+2023-01-21 12:54:32,457 INFO  [Thread-0] root: SEND 	<127.0.0.1:56566>: 'GET_SUCCESS,sample key,
+'
+2023-01-21 12:55:53,346 INFO  [main] root: Initialize server...
+2023-01-21 12:55:53,350 INFO  [main] root: Server listening on port: 8008
+2023-01-21 12:56:03,208 INFO  [main] root: Connected to localhost on port 56569
+2023-01-21 12:56:24,448 INFO  [Thread-0] root: RECEIVE 	<127.0.0.1:56569>: 'PUT_UPDATE,key,val'
+2023-01-21 12:56:24,449 DEBUG [Thread-0] root: Trying to PUT_UPDATEkey with value val
+
+2023-01-21 12:56:24,450 INFO  [Thread-0] root: SEND 	<127.0.0.1:56569>: 'PUT_SUCCESS,sample key,
+'
+2023-01-21 14:28:49,796 INFO  [main] root: Initialize server...
+2023-01-21 14:28:49,805 INFO  [main] root: Server listening on port: 8008
+2023-01-21 14:29:01,038 INFO  [main] root: Connected to localhost on port 56678
+2023-01-21 14:29:12,425 INFO  [Thread-0] root: RECEIVE 	<127.0.0.1:56678>: 'PUT,key,'
+2023-01-21 14:29:12,426 DEBUG [Thread-0] root: Trying to PUT key with value 
+
+2023-01-21 14:29:12,427 INFO  [Thread-0] root: SEND 	<127.0.0.1:56678>: 'PUT_SUCCESS,sample key,
+'
+2023-01-22 09:56:34,198 INFO  [main] root: Initialize server...
+2023-01-22 09:56:34,205 INFO  [main] root: Server listening on port: 8008
+2023-01-22 09:56:51,517 INFO  [main] root: Connected to localhost on port 57593
+2023-01-22 09:57:05,940 INFO  [Thread-0] root: RECEIVE 	<127.0.0.1:57593>: 'PUT,hello,world'
+2023-01-22 09:57:05,941 DEBUG [Thread-0] root: Trying to PUT key: hello with value: world
+
+2023-01-22 09:57:05,942 INFO  [Thread-0] root: SEND 	<127.0.0.1:57593>: 'PUT_SUCCESS,hello,world
+
+'
+2023-01-22 09:59:31,750 INFO  [main] root: Initialize server...
+2023-01-22 09:59:31,754 INFO  [main] root: Server listening on port: 8008
+2023-01-22 09:59:41,670 INFO  [main] root: Connected to localhost on port 57598
+2023-01-22 09:59:50,928 INFO  [Thread-0] root: RECEIVE 	<127.0.0.1:57598>: 'GET,hello,'
+2023-01-22 09:59:50,929 DEBUG [Thread-0] root: Trying to GET hello
+2023-01-22 09:59:50,929 DEBUG [Thread-0] root: Key not found: hello
+2023-01-22 09:59:50,929 INFO  [Thread-0] root: SEND 	<127.0.0.1:57598>: 'GET_ERROR,hello,
+'
+2023-01-22 10:01:48,635 INFO  [main] root: Initialize server...
+2023-01-22 10:01:48,640 INFO  [main] root: Server listening on port: 8008
+2023-01-22 10:01:55,717 INFO  [main] root: Connected to localhost on port 57604
+2023-01-22 10:02:00,507 INFO  [Thread-0] root: RECEIVE 	<127.0.0.1:57604>: 'GET,hello,'
+2023-01-22 10:02:00,508 DEBUG [Thread-0] root: Trying to GET hello
+2023-01-22 10:02:00,508 DEBUG [Thread-0] root: Key not found: hello
+2023-01-22 10:02:00,508 INFO  [Thread-0] root: SEND 	<127.0.0.1:57604>: 'GET_ERROR,hello,
+'
+2023-01-22 10:07:35,762 INFO  [main] root: Initialize server...
+2023-01-22 10:07:35,770 INFO  [main] root: Server listening on port: 8008
+2023-01-22 10:07:44,625 INFO  [main] root: Connected to localhost on port 57617
+2023-01-22 10:07:54,944 INFO  [Thread-0] root: RECEIVE 	<127.0.0.1:57617>: 'GET,hello,'
+2023-01-22 10:07:54,944 DEBUG [Thread-0] root: Trying to GET hello
+2023-01-22 10:07:54,944 DEBUG [Thread-0] root: Key not found: hello
+2023-01-22 10:07:54,945 INFO  [Thread-0] root: SEND 	<127.0.0.1:57617>: 'GET_ERROR,hello,
+'
+2023-01-22 10:08:13,313 INFO  [main] root: Initialize server...
+2023-01-22 10:08:13,321 INFO  [main] root: Server listening on port: 8008
+2023-01-22 10:08:19,722 INFO  [main] root: Connected to localhost on port 57620
+2023-01-22 10:08:26,673 INFO  [Thread-0] root: Msg:[B@4132b2d9
+2023-01-22 10:08:26,675 INFO  [Thread-0] root: RECEIVE 	<127.0.0.1:57620>: 'GET,hello,'
+2023-01-22 10:08:26,676 DEBUG [Thread-0] root: Trying to GET hello
+2023-01-22 10:08:26,676 DEBUG [Thread-0] root: Key not found: hello
+2023-01-22 10:08:26,676 INFO  [Thread-0] root: SEND 	<127.0.0.1:57620>: 'GET_ERROR,hello,
+'
+2023-01-22 10:12:40,745 INFO  [Thread-0] root: Msg:[B@4478f480
+2023-01-22 10:12:56,602 INFO  [main] root: Initialize server...
+2023-01-22 10:12:56,614 INFO  [main] root: Server listening on port: 8008
+2023-01-22 10:13:10,561 INFO  [main] root: Connected to localhost on port 57628
+2023-01-22 10:13:20,469 INFO  [Thread-0] root: Msg:[B@4132b2d9
+2023-01-22 10:13:20,474 INFO  [Thread-0] root: RECEIVE 	<127.0.0.1:57628>: 'GET,hello,'
+2023-01-22 10:13:20,474 DEBUG [Thread-0] root: Trying to GET hello
+2023-01-22 10:13:20,474 DEBUG [Thread-0] root: Key not found: hello
+2023-01-22 10:13:20,475 INFO  [Thread-0] root: SEND 	<127.0.0.1:57628>: 'GET_ERROR,hello,
+'
+2023-01-22 10:19:14,551 INFO  [Thread-0] root: Msg:[B@4478f480
+2023-01-22 10:23:00,559 INFO  [main] root: Initialize server...
+2023-01-22 10:23:00,567 INFO  [main] root: Server listening on port: 8008
+2023-01-22 10:23:12,779 INFO  [main] root: Connected to localhost on port 57673
+2023-01-22 10:23:21,958 INFO  [Thread-0] root: Msg:[B@4132b2d9
+2023-01-22 10:23:21,961 INFO  [Thread-0] root: RECEIVE 	<127.0.0.1:57673>: 'GET,hello,'
+2023-01-22 10:23:21,961 DEBUG [Thread-0] root: Trying to GET hello
+2023-01-22 10:23:21,961 DEBUG [Thread-0] root: Key not found: hello
+2023-01-22 10:23:21,962 INFO  [Thread-0] root: SEND 	<127.0.0.1:57673>: 'GET_ERROR,hello,
+'
+2023-01-22 10:23:42,711 INFO  [Thread-0] root: Msg:[B@4478f480
+2023-01-22 10:32:09,733 INFO  [main] root: Initialize server...
+2023-01-22 10:32:09,745 INFO  [main] root: Server listening on port: 8008
+2023-01-22 10:32:18,260 INFO  [main] root: Connected to localhost on port 57698
+2023-01-22 10:32:26,269 INFO  [Thread-0] root: Msg:GET,hello,
+2023-01-22 10:32:26,271 INFO  [Thread-0] root: RECEIVE 	<127.0.0.1:57698>: 'GET,hello,'
+2023-01-22 10:32:26,271 DEBUG [Thread-0] root: Trying to GET hello
+2023-01-22 10:32:26,271 DEBUG [Thread-0] root: Key not found: hello
+2023-01-22 10:32:26,272 INFO  [Thread-0] root: SEND 	<127.0.0.1:57698>: 'GET_ERROR,hello,
+'
+2023-01-22 10:32:37,677 INFO  [Thread-0] root: Msg:GET,hello,
+2023-01-22 11:26:18,349 INFO  [main] root: Initialize server...
+2023-01-22 11:26:18,361 INFO  [main] root: Server listening on port: 8008
+2023-01-22 11:26:40,939 INFO  [main] root: Connected to localhost on port 58186
+2023-01-22 11:26:48,298 INFO  [Thread-0] root: Msg:GET,hello,
+2023-01-22 11:26:48,301 INFO  [Thread-0] root: RECEIVE 	<127.0.0.1:58186>: 'GET,hello,'
+2023-01-22 11:26:48,301 DEBUG [Thread-0] root: Trying to GET hello
+2023-01-22 11:26:48,301 DEBUG [Thread-0] root: Key not found: hello
+2023-01-22 11:26:48,303 INFO  [Thread-0] root: SEND 	<127.0.0.1:58186>: 'GET_ERROR,hello,
+'
+2023-01-22 11:27:08,871 INFO  [main] root: Initialize server...
+2023-01-22 11:27:08,875 INFO  [main] root: Server listening on port: 8008
+2023-01-22 11:27:18,381 INFO  [main] root: Connected to localhost on port 58188
+2023-01-22 11:27:23,290 INFO  [Thread-0] root: Msg:GET,hello,
+2023-01-22 11:27:23,291 INFO  [Thread-0] root: RECEIVE 	<127.0.0.1:58188>: 'GET,hello,'
+2023-01-22 11:27:23,292 DEBUG [Thread-0] root: Trying to GET hello
+2023-01-22 11:27:23,292 DEBUG [Thread-0] root: Key not found: hello
+2023-01-22 11:27:23,292 INFO  [Thread-0] root: SEND 	<127.0.0.1:58188>: 'GET_ERROR,hello,
+'
+2023-01-22 11:27:42,683 INFO  [Thread-0] root: Msg:GET,hello,
+2023-01-22 11:28:26,026 INFO  [main] root: Initialize server...
+2023-01-22 11:28:26,030 INFO  [main] root: Server listening on port: 8008
+2023-01-22 11:28:33,357 INFO  [main] root: Connected to localhost on port 58194
+2023-01-22 11:28:41,908 INFO  [Thread-0] root: Msg:[71, 69, 84, 44, 104, 101, 108, 108, 111, 44]
+2023-01-22 11:28:41,910 INFO  [Thread-0] root: RECEIVE 	<127.0.0.1:58194>: 'GET,hello,'
+2023-01-22 11:28:41,911 DEBUG [Thread-0] root: Trying to GET GET,hello
+2023-01-22 11:28:41,911 DEBUG [Thread-0] root: Key not found: GET,hello
+2023-01-22 11:28:41,911 INFO  [Thread-0] root: SEND 	<127.0.0.1:58194>: 'GET_ERROR,GET,hello,
+'
+2023-01-22 11:29:06,490 INFO  [Thread-0] root: Msg:[13, 71, 69, 84, 44, 104, 101, 108, 108, 111, 44]
+2023-01-22 11:35:56,189 INFO  [main] root: Initialize server...
+2023-01-22 11:35:56,197 INFO  [main] root: Server listening on port: 8008
+2023-01-22 11:36:04,914 INFO  [main] root: Connected to localhost on port 58224
+2023-01-22 11:36:10,213 INFO  [Thread-0] root: Msg:[71, 69, 84, 44, 104, 101, 108, 108, 111, 44]
+2023-01-22 11:36:10,215 INFO  [Thread-0] root: RECEIVE 	<127.0.0.1:58224>: 'GET,hello,'
+2023-01-22 11:36:10,216 DEBUG [Thread-0] root: Trying to GET GET,hello
+2023-01-22 11:36:10,216 DEBUG [Thread-0] root: Key not found: GET,hello
+2023-01-22 11:36:10,217 INFO  [Thread-0] root: SEND 	<127.0.0.1:58224>: 'GET_ERROR,GET,hello,
+'
+2023-01-22 11:36:15,004 INFO  [Thread-0] root: Msg:[13, 71, 69, 84, 44, 104, 101, 108, 108, 111, 44]
+2023-01-22 11:36:26,096 INFO  [main] root: Initialize server...
+2023-01-22 11:36:26,104 INFO  [main] root: Server listening on port: 8008
+2023-01-22 11:36:34,189 INFO  [main] root: Connected to localhost on port 58228
+2023-01-22 11:36:38,606 INFO  [Thread-0] root: Msg:[71, 69, 84, 44, 104, 101, 108, 108, 111, 44]
+2023-01-22 11:36:38,609 INFO  [Thread-0] root: RECEIVE 	<127.0.0.1:58228>: 'GET,hello,'
+2023-01-22 11:36:38,610 DEBUG [Thread-0] root: Trying to GET GET,hello
+2023-01-22 11:36:38,610 DEBUG [Thread-0] root: Key not found: GET,hello
+2023-01-22 11:36:38,611 INFO  [Thread-0] root: SEND 	<127.0.0.1:58228>: 'GET_ERROR,GET,hello,
+'
+2023-01-22 11:36:38,611 INFO  [Thread-0] root: Msg:[]
+2023-01-22 11:39:59,775 INFO  [main] root: Initialize server...
+2023-01-22 11:39:59,786 INFO  [main] root: Server listening on port: 8008
+2023-01-22 11:40:12,802 INFO  [main] root: Connected to localhost on port 58242
+2023-01-22 11:40:17,997 INFO  [Thread-0] root: Msg:[71, 69, 84, 44, 104, 101, 108, 108, 111, 44]
+2023-01-22 11:40:18,002 INFO  [Thread-0] root: RECEIVE 	<127.0.0.1:58242>: 'GET,hello,'
+2023-01-22 11:40:18,003 DEBUG [Thread-0] root: Trying to GET GET,hello
+2023-01-22 11:40:18,003 DEBUG [Thread-0] root: Key not found: GET,hello
+2023-01-22 11:40:18,005 INFO  [Thread-0] root: SEND 	<127.0.0.1:58242>: 'GET_ERROR,GET,hello,
+'
+2023-01-22 11:40:23,490 INFO  [Thread-0] root: Msg:[71, 69, 84, 44, 104, 101, 108, 108, 111, 44]
+2023-01-22 11:40:23,490 INFO  [Thread-0] root: RECEIVE 	<127.0.0.1:58242>: 'GET,hello,'
+2023-01-22 11:40:23,490 DEBUG [Thread-0] root: Trying to GET GET,hello
+2023-01-22 11:40:23,490 DEBUG [Thread-0] root: Key not found: GET,hello
+2023-01-22 11:40:23,490 INFO  [Thread-0] root: SEND 	<127.0.0.1:58242>: 'GET_ERROR,GET,hello,
+'
+2023-01-22 11:40:29,665 INFO  [Thread-0] root: Msg:[80, 85, 84, 44, 104, 101, 108, 108, 111, 44, 119, 111, 114, 108, 100]
+2023-01-22 11:40:29,665 INFO  [Thread-0] root: RECEIVE 	<127.0.0.1:58242>: 'PUT,hello,world'
+2023-01-22 11:40:29,665 DEBUG [Thread-0] root: Trying to PUT key: PUT,hello with value: world
+
+2023-01-22 11:40:29,666 INFO  [Thread-0] root: SEND 	<127.0.0.1:58242>: 'PUT_SUCCESS,PUT,hello,world
+
+'
+2023-01-22 11:41:48,254 INFO  [Thread-0] root: Msg:[80, 85, 84, 44, 104, 101, 108, 108, 111, 44, 119, 111, 114, 108, 100]
+2023-01-22 11:41:48,256 INFO  [Thread-0] root: RECEIVE 	<127.0.0.1:58242>: 'PUT,hello,world'
+2023-01-22 11:41:48,256 DEBUG [Thread-0] root: Trying to PUT key: PUT,hello with value: world
+
+2023-01-22 11:41:48,257 INFO  [Thread-0] root: SEND 	<127.0.0.1:58242>: 'PUT_SUCCESS,PUT,hello,world
+
+'
+2023-01-22 11:47:41,058 INFO  [main] root: Initialize server...
+2023-01-22 11:47:41,066 INFO  [main] root: Server listening on port: 8008
+2023-01-22 11:47:54,201 INFO  [main] root: Connected to localhost on port 58266
+2023-01-22 11:48:00,994 INFO  [Thread-0] root: Msg:[71, 69, 84, 44, 104, 101, 108, 108, 111, 44]
+2023-01-22 11:48:00,996 INFO  [Thread-0] root: RECEIVE 	<127.0.0.1:58266>: 'GET,hello,'
+2023-01-22 11:48:00,996 DEBUG [Thread-0] root: Trying to GET hello
+2023-01-22 11:48:00,997 DEBUG [Thread-0] root: Key not found: hello
+2023-01-22 11:48:00,998 INFO  [Thread-0] root: SEND 	<127.0.0.1:58266>: 'GET_ERROR,hello,
+'
+2023-01-22 11:48:33,898 INFO  [Thread-0] root: Msg:[80, 85, 84, 44, 104, 101, 108, 108, 111, 44, 119, 111, 114, 108, 100]
+2023-01-22 11:48:33,899 INFO  [Thread-0] root: RECEIVE 	<127.0.0.1:58266>: 'PUT,hello,world'
+2023-01-22 11:48:33,899 DEBUG [Thread-0] root: Trying to PUT key: hello with value: world
+
+2023-01-22 11:48:33,899 INFO  [Thread-0] root: SEND 	<127.0.0.1:58266>: 'PUT_SUCCESS,hello,world
+
+'
+2023-01-22 11:49:17,046 INFO  [main] root: Initialize server...
+2023-01-22 11:49:17,054 INFO  [main] root: Server listening on port: 8008
+2023-01-22 11:49:24,885 INFO  [main] root: Connected to localhost on port 58273
+2023-01-22 11:49:30,728 INFO  [Thread-0] root: Msg:[80, 85, 84, 44, 104, 101, 108, 108, 111, 44, 119, 111, 114, 108, 100]
+2023-01-22 11:49:30,730 INFO  [Thread-0] root: RECEIVE 	<127.0.0.1:58273>: 'PUT,hello,world'
+2023-01-22 11:49:30,732 DEBUG [Thread-0] root: Trying to PUT key: hello with value: world
+
+2023-01-22 11:49:30,733 INFO  [Thread-0] root: SEND 	<127.0.0.1:58273>: 'PUT_SUCCESS,hello,world
+'
+2023-01-22 11:55:38,081 INFO  [main] root: Initialize server...
+2023-01-22 11:55:38,090 INFO  [main] root: Server listening on port: 8008
+2023-01-22 11:55:44,910 INFO  [main] root: Connected to localhost on port 58297
+2023-01-22 11:55:51,028 INFO  [Thread-0] root: Msg:[71, 69, 84, 44, 104, 101, 108, 108, 111, 44]
+2023-01-22 11:55:51,030 INFO  [Thread-0] root: RECEIVE 	<127.0.0.1:58297>: 'GET,hello,'
+2023-01-22 11:55:51,030 DEBUG [Thread-0] root: Trying to GET hello
+2023-01-22 11:55:51,030 DEBUG [Thread-0] root: Key found: hello
+2023-01-22 11:55:51,032 INFO  [Thread-0] root: SEND 	<127.0.0.1:58297>: 'GET_SUCCESS,hello,sample key'
+2023-01-22 11:56:02,199 INFO  [Thread-0] root: Msg:[71, 69, 84, 44, 104, 101, 108, 108, 111, 44]
+2023-01-22 11:56:02,200 INFO  [Thread-0] root: RECEIVE 	<127.0.0.1:58297>: 'GET,hello,'
+2023-01-22 11:56:02,200 DEBUG [Thread-0] root: Trying to GET hello
+2023-01-22 11:56:02,200 DEBUG [Thread-0] root: Key found: hello
+2023-01-22 11:56:02,200 INFO  [Thread-0] root: SEND 	<127.0.0.1:58297>: 'GET_SUCCESS,hello,sample key'
+2023-01-22 11:56:12,746 INFO  [Thread-0] root: Msg:[80, 85, 84, 44, 104, 101, 108, 108, 111, 44, 119, 111, 114, 108, 100]
+2023-01-22 11:56:12,747 INFO  [Thread-0] root: RECEIVE 	<127.0.0.1:58297>: 'PUT,hello,world'
+2023-01-22 11:56:12,747 DEBUG [Thread-0] root: Trying to PUT_UPDATE for key: hello with value: world
+
+2023-01-22 11:56:12,747 INFO  [Thread-0] root: SEND 	<127.0.0.1:58297>: 'PUT_UPDATE,hello,world
+'
+2023-01-22 11:58:33,213 INFO  [main] root: Initialize server...
+2023-01-22 11:58:33,222 INFO  [main] root: Server listening on port: 8008
+2023-01-22 11:58:42,206 INFO  [main] root: Connected to localhost on port 58308
+2023-01-22 11:58:48,357 INFO  [Thread-0] root: Msg:[71, 69, 84, 44, 104, 101, 108, 108, 111, 44]
+2023-01-22 11:58:48,359 INFO  [Thread-0] root: RECEIVE 	<127.0.0.1:58308>: 'GET,hello,'
+2023-01-22 11:58:48,360 DEBUG [Thread-0] root: Trying to GET hello
+2023-01-22 11:58:48,360 DEBUG [Thread-0] root: Key found: hello
+2023-01-22 11:58:48,360 DEBUG [Thread-0] root: [71, 69, 84, 95, 83, 85, 67, 67, 69, 83, 83, 44, 104, 101, 108, 108, 111, 44, 115, 97, 109, 112, 108, 101, 32, 107, 101, 121, 10, 13]
+2023-01-22 11:58:48,362 INFO  [Thread-0] root: SEND 	<127.0.0.1:58308>: 'GET_SUCCESS,hello,sample key'
+2023-01-22 11:59:18,801 INFO  [Thread-0] root: Msg:[80, 85, 84, 44, 104, 101, 108, 108, 111, 44, 119, 111, 114, 108, 100]
+2023-01-22 11:59:18,802 INFO  [Thread-0] root: RECEIVE 	<127.0.0.1:58308>: 'PUT,hello,world'
+2023-01-22 11:59:18,802 DEBUG [Thread-0] root: Trying to PUT_UPDATE for key: hello with value: world
+
+2023-01-22 11:59:18,802 DEBUG [Thread-0] root: [80, 85, 84, 95, 85, 80, 68, 65, 84, 69, 44, 104, 101, 108, 108, 111, 44, 119, 111, 114, 108, 100, 10, 13, 10, 13]
+2023-01-22 11:59:18,803 INFO  [Thread-0] root: SEND 	<127.0.0.1:58308>: 'PUT_UPDATE,hello,world
+'
+2023-01-22 12:04:20,694 INFO  [main] root: Initialize server...
+2023-01-22 12:04:20,705 INFO  [main] root: Server listening on port: 8008
+2023-01-22 12:04:28,689 INFO  [main] root: Connected to localhost on port 58323
+2023-01-22 12:04:34,087 INFO  [Thread-0] root: Msg:[71, 69, 84, 44, 104, 101, 108, 108, 111, 44]
+2023-01-22 12:04:34,089 INFO  [Thread-0] root: RECEIVE 	<127.0.0.1:58323>: 'GET,hello,'
+2023-01-22 12:04:34,090 DEBUG [Thread-0] root: Trying to GET hello
+2023-01-22 12:04:34,090 DEBUG [Thread-0] root: Key found: hello
+2023-01-22 12:04:34,090 DEBUG [Thread-0] root: [71, 69, 84, 95, 83, 85, 67, 67, 69, 83, 83, 44, 104, 101, 108, 108, 111, 44, 115, 97, 109, 112, 108, 101, 32, 107, 101, 121, 10, 13]
+2023-01-22 12:04:34,092 INFO  [Thread-0] root: SEND 	<127.0.0.1:58323>: 'GET_SUCCESS,hello,sample key'
+2023-01-22 12:04:41,774 INFO  [Thread-0] root: Msg:[80, 85, 84, 44, 104, 101, 108, 108, 111, 44, 119, 111, 114, 108, 100]
+2023-01-22 12:04:41,775 INFO  [Thread-0] root: RECEIVE 	<127.0.0.1:58323>: 'PUT,hello,world'
+2023-01-22 12:04:41,775 DEBUG [Thread-0] root: Trying to PUT_UPDATE for key: hello with value: world
+
+2023-01-22 12:04:41,775 DEBUG [Thread-0] root: [80, 85, 84, 95, 85, 80, 68, 65, 84, 69, 44, 104, 101, 108, 108, 111, 44, 119, 111, 114, 108, 100, 10, 13, 10, 13]
+2023-01-22 12:04:41,775 INFO  [Thread-0] root: SEND 	<127.0.0.1:58323>: 'PUT_UPDATE,hello,world
+'
+2023-01-22 12:06:46,301 INFO  [main] root: Initialize server...
+2023-01-22 12:06:46,310 INFO  [main] root: Server listening on port: 8008
+2023-01-22 12:06:53,139 INFO  [main] root: Connected to localhost on port 58327
+2023-01-22 12:06:59,456 INFO  [Thread-0] root: Msg:[80, 85, 84, 44, 104, 101, 108, 108, 111, 44, 119, 111, 114, 108, 100]
+2023-01-22 12:06:59,458 INFO  [Thread-0] root: RECEIVE 	<127.0.0.1:58327>: 'PUT,hello,world'
+2023-01-22 12:06:59,459 DEBUG [Thread-0] root: Trying to PUT_UPDATE for key: hello with value: world
+
+2023-01-22 12:06:59,459 DEBUG [Thread-0] root: res msg array:[80, 85, 84, 95, 85, 80, 68, 65, 84, 69, 44, 104, 101, 108, 108, 111, 44, 119, 111, 114, 108, 100, 10, 13, 10, 13]
+2023-01-22 12:06:59,459 DEBUG [Thread-0] root: [80, 85, 84, 95, 85, 80, 68, 65, 84, 69, 44, 104, 101, 108, 108, 111, 44, 119, 111, 114, 108, 100, 10, 13, 10, 13]
+2023-01-22 12:06:59,459 INFO  [Thread-0] root: SEND 	<127.0.0.1:58327>: 'PUT_UPDATE,hello,world
+'
+2023-01-22 12:10:28,494 INFO  [main] root: Initialize server...
+2023-01-22 12:10:28,504 INFO  [main] root: Server listening on port: 8008
+2023-01-22 12:10:35,211 INFO  [main] root: Connected to localhost on port 58336
+2023-01-22 12:10:41,265 INFO  [Thread-0] root: Msg:[80, 85, 84, 44, 104, 101, 108, 108, 111, 44, 119, 111, 114, 108, 100]
+2023-01-22 12:10:41,267 INFO  [Thread-0] root: RECEIVE 	<127.0.0.1:58336>: 'PUT,hello,world'
+2023-01-22 12:10:41,268 DEBUG [Thread-0] root: Trying to PUT_UPDATE for key: hello with value: world
+
+2023-01-22 12:10:41,268 DEBUG [Thread-0] root: res msg array:[80, 85, 84, 95, 85, 80, 68, 65, 84, 69, 44, 104, 101, 108, 108, 111, 44, 119, 111, 114, 108, 100, 10, 13]
+2023-01-22 12:10:41,268 DEBUG [Thread-0] root: [80, 85, 84, 95, 85, 80, 68, 65, 84, 69, 44, 104, 101, 108, 108, 111, 44, 119, 111, 114, 108, 100, 10, 13]
+2023-01-22 12:10:41,269 INFO  [Thread-0] root: SEND 	<127.0.0.1:58336>: 'PUT_UPDATE,hello,world
+'
