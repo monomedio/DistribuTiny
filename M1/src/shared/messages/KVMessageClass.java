@@ -11,7 +11,7 @@ public class KVMessageClass implements KVMessage, Serializable {
 	private static final long serialVersionUID = 1234567L;
 	private String msg;
 	private String key;
-	private  String value;
+	private String value;
 	private StatusType status;
 	private byte[] msgBytes;
 	private static final char LINE_FEED = 0x0A;
