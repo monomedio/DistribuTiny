@@ -86,7 +86,7 @@ public class KVServer implements IKVServer {
     }
 
     public synchronized void deleteKV(String key) throws Exception {
-
+        //hashmap remove method
     }
 
     @Override

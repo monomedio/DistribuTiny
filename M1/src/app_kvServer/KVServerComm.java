@@ -215,7 +215,6 @@ public class KVServerComm implements Runnable {
 		}
 		
 		msgBytes = tmp;
-		logger.info("Msg:" + Arrays.toString(msgBytes));
 		/* build final String */
 		KVMessageClass msg = new KVMessageClass(msgBytes);
 		logger.info("RECEIVE \t<" 
