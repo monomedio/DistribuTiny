@@ -1,9 +1,0 @@
-M1-starter-code
-.DS_Store
-*.iml
-.idea
-M1/bin
-M1/echoClient
-M1/echoServer
-M1/logs
-M1/out
