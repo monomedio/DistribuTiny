@@ -1,37 +1,101 @@
 package shared.messages;
 
-public interface KVMessage {
-	
-	public enum StatusType {
-		GET, 			/* Get - request */
-		GET_ERROR, 		/* requested tuple (i.e. value) not found */
-		GET_SUCCESS, 	/* requested tuple (i.e. value) found */
-		PUT, 			/* Put - request */
-		PUT_SUCCESS, 	/* Put - request successful, tuple inserted */
-		PUT_UPDATE, 	/* Put - request successful, i.e. value updated */
-		PUT_ERROR, 		/* Put - request not successful */
-		DELETE_SUCCESS, /* Delete - request successful */
-		DELETE_ERROR 	/* Delete - request successful */
-	}
+public class KVMessage implements IKVMessage {
 
-	/**
-	 * @return the key that is associated with this message, 
-	 * 		null if not key is associated.
-	 */
-	public String getKey();
-	
-	/**
-	 * @return the value that is associated with this message, 
-	 * 		null if not value is associated.
-	 */
-	public String getValue();
-	
-	/**
-	 * @return a status string that is used to identify request types, 
-	 * response types and error types associated to the message.
-	 */
-	public StatusType getStatus();
-	
+    private String key;
+    private String value;
+    private StatusType status;
+
+    private byte[] messageBytes;
+
+    private static final char LINE_FEED = 0x0A;
+    private static final char RETURN = 0x0D;
+
+    /**
+     * Constructor for KVMessage
+     * @param status the request status carried by a message
+     * @param key the key carried by a message
+     * @param value the value carried by a message
+     */
+    public KVMessage(StatusType status, String key, String value) {
+        this.key = key;
+        this.value = value;
+        this.status = status;
+        this.messageBytes = toByteArray(status.toString() + " " + key + " " + value);
+    }
+
+    /**
+     * Constructor for KVMessage that represents a 2-ary command
+     * @param status the request status carried by a message
+     * @param key the key carried by a message
+     */
+    public KVMessage(StatusType status, String key) {
+        this.status = status;
+        this.key = key;
+        this.messageBytes = toByteArray(status.toString() + " " + key);
+    }
+
+    /**
+     * Constructor for KVMessage from a byte array
+     * @param messageBytes a UTF-8 encoded byte array representing the message
+     */
+    public KVMessage(byte[] messageBytes) {
+        this.messageBytes = messageBytes;
+        String[] argsArray = messageBytesToArgsArray(messageBytes);
+        this.status = StatusType.valueOf(argsArray[0]);
+        this.key = argsArray[1];
+
+        if (argsArray.length == 3) {
+            this.value = argsArray[2];
+        }
+    }
+
+    @Override
+    public String getKey() {
+        return this.key;
+    }
+
+    @Override
+    public String getValue() {
+        return this.value;
+    }
+
+    @Override
+    public StatusType getStatus() {
+        return this.status;
+    }
+
+    @Override
+    public byte[] getMessageBytes() {
+        return this.messageBytes;
+    }
+
+    @Override
+    public String getMessage() {
+        String temp = new String(this.messageBytes);
+        return temp.substring(0, temp.length() - 2);
+    }
+
+//////////////////// METHOD HELPERS ////////////////////
+
+    private String[] messageBytesToArgsArray(byte[] messageBytes) {
+        // Parses byte array into String using UTF-8 charset
+        String temp = new String(messageBytes);
+        // Splits into arguments, applying space delimiter at most twice
+        // https://stackoverflow.com/questions/24748619/split-string-by-whitespaces-removes-new-line-characters
+        String[] args = temp.split("[ \\t\\x0B\\f]+", 3);
+        args[args.length - 1] = args[args.length - 1].substring(0, args[args.length - 1].length() - 2);
+        return args;
+    }
+
+    private byte[] toByteArray(String s){
+        byte[] bytes = s.getBytes();
+        byte[] ctrBytes = new byte[]{LINE_FEED, RETURN};
+        byte[] tmp = new byte[bytes.length + ctrBytes.length];
+
+        System.arraycopy(bytes, 0, tmp, 0, bytes.length);
+        System.arraycopy(ctrBytes, 0, tmp, bytes.length, ctrBytes.length);
+
+        return tmp;
+    }
 }
-
-
