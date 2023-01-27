@@ -1,8 +1,8 @@
 package app_kvServer;
 
 import org.apache.log4j.Logger;
+import shared.messages.IKVMessage;
 import shared.messages.KVMessage;
-import shared.messages.KVMessageClass;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -58,7 +58,7 @@ public class KVServerComm implements Runnable {
 			
 			while(isOpen) {
 				try {
-					KVMessageClass latestMsg = receiveMessage();
+					KVMessage latestMsg = receiveMessage();
 					sendMessage(handleMessage(latestMsg));
 				/* connection either terminated by the client or lost due to 
 				 * network problems*/	
@@ -84,33 +84,32 @@ public class KVServerComm implements Runnable {
 			}
 		}
 	}
-	private KVMessageClass handlePUTMessage(KVMessageClass msg) throws Exception {
+	private KVMessage handlePUTMessage(KVMessage msg) throws Exception {
 		boolean keyExists = kvServer.inCache(msg.getKey()) || kvServer.inStorage(msg.getKey());
 		boolean validDeletion = keyExists && (msg.getValue() == null);
-		KVMessageClass res;
+		KVMessage res;
 		if (validDeletion) {
 			logger.debug("Trying to DELETE for key:" + msg.getKey());
 			kvServer.deleteKV(msg.getKey());
-			return new KVMessageClass(KVMessage.StatusType.DELETE_SUCCESS.toString() + ",,");
+			return new KVMessage(KVMessage.StatusType.DELETE_SUCCESS, "");
 		}
 
 		if (!keyExists) {
 			logger.debug("Trying to PUT key: " + msg.getKey() + " with value: " + msg.getValue());
 			kvServer.putKV(msg.getKey(), msg.getValue());
-			return new KVMessageClass(KVMessage.StatusType.PUT_SUCCESS.toString() + "," +
-					msg.getKey() + "," + msg.getValue());
+			return new KVMessage(KVMessage.StatusType.PUT_SUCCESS,
+					msg.getKey(), msg.getValue());
 		}
 
 		logger.debug("Trying to PUT_UPDATE for key: " + msg.getKey() + " with value: " + msg.getValue());
 		kvServer.putKV(msg.getKey(), msg.getValue());
-		res = new KVMessageClass(KVMessage.StatusType.PUT_UPDATE.toString() + "," +
-				msg.getKey() + "," + msg.getValue());
-		logger.debug("res msg array:" + Arrays.toString(res.getMsgBytes()));
+		res = new KVMessage(KVMessage.StatusType.PUT_UPDATE,
+				msg.getKey(), msg.getValue());
 		return res;
 
 	}
-	private KVMessageClass handleMessage(KVMessageClass msg){
-		KVMessageClass res;
+	private KVMessage handleMessage(KVMessage msg){
+		KVMessage res;
 		boolean keyExists;
 		try{
 			switch (msg.getStatus()) {
@@ -119,22 +118,21 @@ public class KVServerComm implements Runnable {
 					keyExists = kvServer.inCache(msg.getKey()) || kvServer.inStorage(msg.getKey());
 					if (keyExists) {
 						logger.debug("Key found: "  + msg.getKey());
-						res = new KVMessageClass(KVMessage.StatusType.GET_SUCCESS.toString() + "," + msg.getKey() + "," +
-								kvServer.getKV(msg.getKey()));
+						res = new KVMessage(KVMessage.StatusType.GET_SUCCESS, msg.getKey(), kvServer.getKV(msg.getKey()));
 						return res;
 					}
 					logger.debug("Key not found: " + msg.getKey());
-					res = new KVMessageClass(KVMessage.StatusType.GET_ERROR.toString() + "," + msg.getKey() + ",");
+					res = new KVMessage(KVMessage.StatusType.GET_ERROR, msg.getKey());
 					return res;
 				case PUT:
 					return handlePUTMessage(msg);
 				default:
 					//TODO: add invalid message class
-					return res = new KVMessageClass("NULL, NULL, NULL");
+					return res = new KVMessage(IKVMessage.StatusType.FAILED, msg.getKey());
 				}
 		} catch (Exception e) {
 			//TODO: add unique exceptions + logger interaction
-			return res = new KVMessageClass("NULL");
+			return res = new KVMessage(IKVMessage.StatusType.FAILED, msg.getKey());
 		}
 
 	}
@@ -144,23 +142,23 @@ public class KVServerComm implements Runnable {
 	 * @param msg the message that is to be sent.
 	 * @throws IOException some I/O error regarding the output stream 
 	 */
-	public void sendMessage(KVMessageClass msg) throws IOException {
-		byte[] msgBytes = msg.getMsgBytes();
+	public void sendMessage(KVMessage msg) throws IOException {
+		byte[] msgBytes = msg.getMessageBytes();
 		logger.debug(Arrays.toString(msgBytes));
 		output.write(msgBytes, 0, msgBytes.length);
 		output.flush();
 		logger.info("SEND \t<" 
 				+ clientSocket.getInetAddress().getHostAddress() + ":" 
 				+ clientSocket.getPort() + ">: '" 
-				+ msg.getMsg() +"'");
+				+ msg.getMessage() +"'");
     }
 
-	private KVMessageClass receiveMessage() throws IOException {
+	private KVMessage receiveMessage() throws IOException {
 		
 		int index = 0;
 		byte[] msgBytes = null, tmp = null;
 		byte[] bufferBytes = new byte[BUFFER_SIZE];
-		
+
 		/* read first char from stream */
 		byte read = (byte) input.read();	
 		boolean reading = true;
@@ -215,12 +213,13 @@ public class KVServerComm implements Runnable {
 		}
 		
 		msgBytes = tmp;
+		logger.debug(Arrays.toString(msgBytes));
 		/* build final String */
-		KVMessageClass msg = new KVMessageClass(msgBytes);
+		KVMessage msg = new KVMessage(msgBytes);
 		logger.info("RECEIVE \t<" 
 				+ clientSocket.getInetAddress().getHostAddress() + ":" 
 				+ clientSocket.getPort() + ">: '" 
-				+ msg.getMsg().trim() + "'");
+				+ msg.getMessage().trim() + "'");
 		return msg;
     }
 
