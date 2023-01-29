@@ -72,8 +72,7 @@ public class KVMessage implements IKVMessage {
 
     @Override
     public String getMessage() {
-        String temp = new String(this.messageBytes);
-        return temp.substring(0, temp.length() - 2);
+        return new String(this.messageBytes);
     }
 
 //////////////////// METHOD HELPERS ////////////////////
@@ -84,13 +83,12 @@ public class KVMessage implements IKVMessage {
         // Splits into arguments, applying space delimiter at most twice
         // https://stackoverflow.com/questions/24748619/split-string-by-whitespaces-removes-new-line-characters
         String[] args = temp.split("[ \\t\\x0B\\f]+", 3);
-        args[args.length - 1] = args[args.length - 1].substring(0, args[args.length - 1].length() - 2);
         return args;
     }
 
     private byte[] toByteArray(String s){
         byte[] bytes = s.getBytes();
-        byte[] ctrBytes = new byte[]{LINE_FEED, RETURN};
+        byte[] ctrBytes = new byte[]{RETURN, LINE_FEED};
         byte[] tmp = new byte[bytes.length + ctrBytes.length];
 
         System.arraycopy(bytes, 0, tmp, 0, bytes.length);

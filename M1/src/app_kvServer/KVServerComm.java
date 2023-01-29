@@ -179,7 +179,7 @@ public class KVServerComm implements Runnable {
 //			return msg;
 //		}
 
-		while(/*read != 13 &&*/  read != 10 && read !=-1 && reading) {/* CR, LF, error */
+		while(/*read != 13 &&*/  read != 13 && read !=-1 && reading) {/* CR, LF, error */
 			/* if buffer filled, copy to msg array */
 			if(index == BUFFER_SIZE) {
 				if(msgBytes == null){
@@ -226,7 +226,7 @@ public class KVServerComm implements Runnable {
 		logger.info("RECEIVE \t<" 
 				+ clientSocket.getInetAddress().getHostAddress() + ":" 
 				+ clientSocket.getPort() + ">: '" 
-				+ msg.getMessage().trim() + "'");
+				+ msg.getMessage() + "'");
 		return msg;
     }
 
