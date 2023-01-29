@@ -127,12 +127,19 @@ public class KVServerComm implements Runnable {
 				case PUT:
 					return handlePUTMessage(msg);
 				default:
-					//TODO: add invalid message class
-					return res = new KVMessage(IKVMessage.StatusType.FAILED, msg.getKey());
+					return res = new KVMessage(IKVMessage.StatusType.FAILED, "Unknown request");
 				}
 		} catch (Exception e) {
 			//TODO: add unique exceptions + logger interaction
-			return res = new KVMessage(IKVMessage.StatusType.FAILED, msg.getKey());
+			logger.debug(e.getMessage());
+
+//			switch (e.getMessage()) {
+//				case "PUT_ERROR":
+//					return res = new KVMessage(IKVMessage.StatusType.PUT_ERROR, msg.key(), msg.getValue());
+//				case "GET_ERROR":
+//					return res = new KVMessage(IKVMessage.StatusType.GET_ERROR, msg.getKey());
+//			}
+			return res = new KVMessage(IKVMessage.StatusType.FAILED, "An IO-error occurred at the server");
 		}
 
 	}
@@ -160,7 +167,7 @@ public class KVServerComm implements Runnable {
 		byte[] bufferBytes = new byte[BUFFER_SIZE];
 
 		/* read first char from stream */
-		byte read = (byte) input.read();	
+		byte read = (byte) input.read();
 		boolean reading = true;
 		if (read == 13) {
 			read = (byte) input.read();

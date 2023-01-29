@@ -1,5 +1,6 @@
 package app_kvServer;
 
+import app_kvServer.persistence.Storage;
 import logger.LogSetup;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -22,6 +23,8 @@ public class KVServer implements IKVServer {
 
     private boolean running;
 
+    private Storage store;
+
     /**
      * Start KV Server at given port
      *
@@ -33,10 +36,11 @@ public class KVServer implements IKVServer {
      *                  currently not contained in the cache. Options are "FIFO", "LRU",
      *                  and "LFU".
      */
-    public KVServer(int port, int cacheSize, String strategy) {
+    public KVServer(int port, int cacheSize, String strategy, String path) {
         this.port = port;
         this.cacheSize = cacheSize;
         this.cacheStrategy = CacheStrategy.valueOf(strategy);
+        this.store = new Storage(path);
     }
 
     @Override
@@ -65,7 +69,7 @@ public class KVServer implements IKVServer {
     @Override
     public boolean inStorage(String key) {
         // TODO Auto-generated method stub
-        return true;
+        return store.inStorage(key);
     }
 
     @Override
@@ -76,13 +80,23 @@ public class KVServer implements IKVServer {
 
     @Override
     public synchronized String getKV(String key) throws Exception {
-        // TODO Auto-generated method stub
-        return "sample key";
+        String value = "";
+        if (inCache(key)) {
+            return "TODO";
+        }
+        try {
+             value = store.get(key);
+        } catch (Exception e) {
+            throw new Exception("GET_ERROR");
+        }
+        return value;
     }
 
     @Override
     public synchronized void putKV(String key, String value) throws Exception {
-        // TODO Auto-generated method stub
+        if (!store.put(key, value)) {
+            throw new Exception("PUT_ERROR");
+        }
     }
 
     public synchronized void deleteKV(String key) throws Exception {
@@ -160,13 +174,13 @@ public class KVServer implements IKVServer {
     public static void main(String[] args) {
         try {
             new LogSetup("logs/server.log", Level.ALL);
-            if (args.length != 3) {
+            if (args.length != 4) {
                 System.out.println("Error! Invalid number of arguments");
-                System.out.println("Usage: KVServer <port> <cache size> <cache strategy>");
+                System.out.println("Usage: KVServer <port> <cache size> <cache strategy> <storage_path>");
             } else {
                 int port = Integer.parseInt(args[0]);
                 int cacheSize = Integer.parseInt(args[1]);
-                new KVServer(port, cacheSize, args[2]).run();
+                new KVServer(port, cacheSize, args[2], args[3]).run();
             }
         } catch (IOException e) {
             System.out.println("Error! Unable to initialize logger!");
