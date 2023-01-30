@@ -84,7 +84,7 @@ public class KVClient implements IKVClient {
                 break;
             case "connect":
                 // TODO establish connection
-                if(tokens.length == 3) {
+                if(tokens.length == 3 && this.kvStore == null) {
                     try{
                         newConnection(tokens[1], Integer.parseInt(tokens[2]));
                         logger.info("Connection established.");
@@ -96,15 +96,15 @@ public class KVClient implements IKVClient {
                         this.kvStore = null;
                         printError("Unknown Host.");
                         logger.info("Unknown Host.", e);
-                    } catch (IOException e) {
-                        System.out.println(PROMPT + "Connection already established");
                     } catch (Exception e) {
                         this.kvStore = null;
                         printError("Could not establish connection.");
                         logger.warn("Could not establish connection.", e);
                     }
-                } else {
+                } else if (tokens.length != 3) {
                     printError("Invalid number of arguments.");
+                } else {
+                    printError("Connection already established.");
                 }
                 break;
             case "put":
@@ -118,8 +118,9 @@ public class KVClient implements IKVClient {
                             System.out.println(message.getMessage());
                         }
                     } catch (Exception e) {
-                        printError("Could not complete PUT request.");
-                        logger.warn("Could not complete PUT request.", e);
+                        this.kvStore = null;
+                        printError("Could not complete PUT request due to I/O error. Disconnecting...");
+                        logger.warn("Could not complete PUT request due to I/O error. Disconnecting...", e);
                     }
                 } else if (tokens.length != 3) {
                     printError("Invalid number of arguments");
@@ -138,8 +139,9 @@ public class KVClient implements IKVClient {
                             System.out.println(message.getMessage());
                         }
                     } catch (Exception e) {
-                        printError("Could not complete GET request.");
-                        logger.warn("Could not complete GET request.", e);
+                        this.kvStore = null;
+                        printError("Could not complete GET request due to I/O error. Disconnecting...");
+                        logger.warn("Could not complete GET request due to I/O error. Disconnecting...", e);
                     }
                 } else if (tokens.length != 2) {
                     printError("Invalid number of arguments.");
