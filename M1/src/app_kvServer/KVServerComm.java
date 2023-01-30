@@ -169,7 +169,7 @@ public class KVServerComm implements Runnable {
 		/* read first char from stream */
 		byte read = (byte) input.read();
 		boolean reading = true;
-		if (read == 13) {
+		if (read == 13 || read == 10) {
 			read = (byte) input.read();
 		}
 //		logger.info("First Char: " + read);
