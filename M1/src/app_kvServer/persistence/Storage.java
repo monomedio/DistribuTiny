@@ -17,6 +17,15 @@ public class Storage {
         return new File(path + "/" + key).isFile();
     }
 
+    public boolean clearStorage() {
+        File directory = new File(path);
+        boolean deleted = true;
+        for (File f : directory.listFiles()) {
+            deleted = deleted && f.delete();
+        }
+        return deleted;
+    }
+
     public void initializeStorage() {
         File directory = new File(path);
         if (!directory.exists() || !directory.isDirectory()) {

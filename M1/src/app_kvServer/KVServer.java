@@ -109,7 +109,7 @@ public class KVServer implements IKVServer {
 
     @Override
     public void clearStorage() {
-        // TODO Create method to clear storage
+        store.clearStorage();
     }
 
     @Override
