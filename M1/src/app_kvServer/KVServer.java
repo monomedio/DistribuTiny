@@ -68,13 +68,12 @@ public class KVServer implements IKVServer {
 
     @Override
     public boolean inStorage(String key) {
-        // TODO Auto-generated method stub
         return store.inStorage(key);
     }
 
     @Override
     public boolean inCache(String key) {
-        // TODO Auto-generated method stub
+        // TODO Create cache
         return false;
     }
 
@@ -105,12 +104,12 @@ public class KVServer implements IKVServer {
 
     @Override
     public void clearCache() {
-        // TODO Auto-generated method stub
+        // TODO Create cache
     }
 
     @Override
     public void clearStorage() {
-        // TODO Auto-generated method stub
+        // TODO Create method to clear storage
     }
 
     @Override
@@ -154,13 +153,13 @@ public class KVServer implements IKVServer {
 
     @Override
     public void kill() {
-        // TODO Auto-generated method stub
+        // TODO Check if this is enough
         this.running = false;
     }
 
     @Override
     public void close() {
-        // TODO Auto-generated method stub
+        // TODO Check if this works
         running = false;
         try {
             if (serverSocket != null) {
