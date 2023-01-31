@@ -23,6 +23,8 @@ public class KVServerComm implements Runnable {
 	private static Logger logger = Logger.getRootLogger();
 
 	private boolean isOpen;
+
+	//TODO Enforce size limits
 	private static final int BUFFER_SIZE = 120100;
 	private static final int DROP_SIZE = 128 * BUFFER_SIZE;
 
@@ -65,7 +67,10 @@ public class KVServerComm implements Runnable {
 				} catch (IOException ioe) {
 					logger.error("Error! Connection lost!");
 					isOpen = false;
-				}				
+				} catch (IllegalArgumentException ia) {
+					logger.error("Client was terminated!");
+					isOpen = false;
+				}
 			}
 			
 		} catch (IOException ioe) {
@@ -75,9 +80,11 @@ public class KVServerComm implements Runnable {
 			
 			try {
 				if (clientSocket != null) {
+					logger.debug("Cleaning up resources");
 					input.close();
 					output.close();
 					clientSocket.close();
+
 				}
 			} catch (IOException ioe) {
 				logger.error("Error! Unable to tear down connection!", ioe);
@@ -130,7 +137,7 @@ public class KVServerComm implements Runnable {
 					return res = new KVMessage(IKVMessage.StatusType.FAILED, "Unknown request");
 				}
 		} catch (Exception e) {
-			//TODO: add unique exceptions + logger interaction
+			//TODO: Can client handle error messages?
 			logger.debug(e.getMessage());
 
 //			switch (e.getMessage()) {
