@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.Objects;
 
 
 /**
@@ -93,7 +94,7 @@ public class KVServerComm implements Runnable {
 	}
 	private KVMessage handlePUTMessage(KVMessage msg) throws Exception {
 		boolean keyExists = kvServer.inCache(msg.getKey()) || kvServer.inStorage(msg.getKey());
-		boolean validDeletion = keyExists && (msg.getValue() == null);
+		boolean validDeletion = keyExists && (Objects.equals(msg.getValue(), "null"));
 		KVMessage res;
 		if (validDeletion) {
 			logger.debug("Trying to DELETE for key:" + msg.getKey());

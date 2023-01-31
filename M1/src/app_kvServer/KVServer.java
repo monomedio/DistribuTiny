@@ -111,7 +111,7 @@ public class KVServer implements IKVServer {
     }
 
     public synchronized void deleteKV(String key) throws Exception {
-        //hashmap remove method
+        store.delete(key);
     }
 
     @Override
@@ -243,8 +243,8 @@ public class KVServer implements IKVServer {
             String stPath = null;
             String logDir = "server.log"; // default is curr directory
             String logLevelStr = "ALL";
-            int cSize = -1;
-            String cStrat = null;
+            int cSize = 21;
+            String cStrat = "LRU";
 
             // convert args to an ArrayList
             List<String> tokens = new ArrayList<String>(Arrays.asList(args));

@@ -46,6 +46,11 @@ public class Storage {
         }
     }
 
+    public boolean delete(String key) {
+        File f = new File(path + File.separator + key);
+        return f.delete();
+    }
+
     public String get(String key) throws IOException {
         return Files.readString(FileSystems.getDefault().getPath(path, key));
     }
