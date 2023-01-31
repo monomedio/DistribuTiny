@@ -1,6 +1,7 @@
 package testing;
 
 import java.io.IOException;
+import java.net.InetAddress;
 
 import org.apache.log4j.Level;
 
@@ -15,7 +16,8 @@ public class AllTests {
 	static {
 		try {
 			new LogSetup("logs/testing/test.log", Level.ERROR);
-			new KVServer(50000, 10, "FIFO", "sample_keys");
+			new KVServer(50000, 10, "FIFO", "sample_keys",
+					InetAddress.getByName("127.0.0.1"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
