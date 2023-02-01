@@ -5,6 +5,8 @@ import app_kvClient.KVClient;
 import app_kvServer.IKVServer;
 import app_kvServer.KVServer;
 
+import java.net.InetAddress;
+
 public final class ObjectFactory {
 	/*
 	 * Creates a KVClient object for auto-testing purposes
@@ -16,9 +18,7 @@ public final class ObjectFactory {
     /*
      * Creates a KVServer object for auto-testing purposes
      */
-	public static IKVServer createKVServerObject(int port, int cacheSize, String strategy) {
-		// TODO uncomment when constructor filled in (if applicable) and when implemented
-		// return new KVServer();
-		return null;
+	public static IKVServer createKVServerObject(int port, int cacheSize, String strategy, String path, InetAddress address) {
+		return new KVServer(port, cacheSize, strategy, path, address);
 	}
 }
