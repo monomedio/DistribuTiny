@@ -150,7 +150,7 @@ public class KVServer implements IKVServer {
     private boolean initializeServer() {
         logger.info("Initialize server...");
         try {
-            this.serverSocket = new ServerSocket(port, 50, address);
+            this.serverSocket = new ServerSocket(port, 20000, address); // backlog -> value between 10k - 40k
             logger.info("Server listening on port: "
                     + serverSocket.getLocalPort());
             return true;
