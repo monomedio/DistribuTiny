@@ -13,14 +13,6 @@ public class KVMessage implements IKVMessage {
 
     /**
      * Constructor for KVMessage
-     * @param error the request status carried by a message
-     */
-    public KVMessage(String error) {
-        this.status = StatusType.FAILED;
-        this.messageBytes = toByteArray(status.toString() + " " + key + " " + value);
-    }
-    /**
-     * Constructor for KVMessage
      * @param status the request status carried by a message
      * @param key the key carried by a message
      * @param value the value carried by a message

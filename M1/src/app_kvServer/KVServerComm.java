@@ -94,7 +94,7 @@ public class KVServerComm implements Runnable {
 		if (validDeletion) {
 			logger.debug("Trying to DELETE for key:" + msg.getKey());
 			kvServer.deleteKV(msg.getKey());
-			return new KVMessage(KVMessage.StatusType.DELETE_SUCCESS, "");
+			return new KVMessage(KVMessage.StatusType.DELETE_SUCCESS, msg.getKey());
 		}
 
 		if (!keyExists) {
@@ -229,7 +229,7 @@ public class KVServerComm implements Runnable {
 		try {
 			msg = new KVMessage(msgBytes);
 		} catch (Exception e) {
-			msg = new KVMessage("An error occurred");
+			msg = new KVMessage(KVMessage.StatusType.FAILED, "An error occurred");
 		}
 		logger.info("RECEIVE \t<" 
 				+ clientSocket.getInetAddress().getHostAddress() + ":" 
