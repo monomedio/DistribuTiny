@@ -1,6 +1,7 @@
 package app_kvServer;
 
 import app_kvServer.persistence.Storage;
+import client.KVCommInterface;
 import logger.LogSetup;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -171,9 +172,9 @@ public class KVServer implements IKVServer {
 
     @Override
     public void close() {
-        // TODO Check if this works
         running = false;
         try {
+            logger.info("Closing sockets!");
             if (serverSocket != null) {
                 serverSocket.close();
             }
@@ -298,7 +299,13 @@ public class KVServer implements IKVServer {
                 Level logLevel = getLevel(logLevelStr);
 
                 new LogSetup(logDir, logLevel);
-                new KVServer(port, cSize, cStrat, stPath, addr).run();
+                final KVServer kvServer = new KVServer(port, cSize, cStrat, stPath, addr);
+                Runtime.getRuntime().addShutdownHook(new Thread() {
+                    public void run() {
+                        kvServer.close();
+                    }
+                });
+                kvServer.run();
             }
         } catch (IOException e) {
             System.out.println("Error! Unable to initialize logger!");
@@ -307,9 +314,15 @@ public class KVServer implements IKVServer {
         } catch (NumberFormatException nfe) {
 //            System.out.println("Error! Invalid argument <port>! Not a number!");
 //            System.out.println("Usage: KVServer <port> <cache size> <cache strategy>");
+            System.out.println("Error! Invalid arguments provided!");
+            printHelp();
             System.exit(1);
         } catch (NullPointerException e) {
             System.out.println("Error! No argument given for mandatory variables.");
+            printHelp();
+            System.exit(1);
+        } catch (IndexOutOfBoundsException iobe) {
+            System.out.println("Error! Invalid arguments provided!");
             printHelp();
             System.exit(1);
         }

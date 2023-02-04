@@ -26,8 +26,8 @@ public class KVServerComm implements Runnable {
 	private boolean isOpen;
 
 	//TODO Enforce size limits
-	private static final int BUFFER_SIZE = 120100;
-	private static final int DROP_SIZE = 128 * BUFFER_SIZE;
+	private static final int BUFFER_SIZE = 1000;
+	private static final int DROP_SIZE = 129 * BUFFER_SIZE;
 
 	private Socket clientSocket;
 	private InputStream input;
@@ -53,11 +53,6 @@ public class KVServerComm implements Runnable {
 		try {
 			output = clientSocket.getOutputStream();
 			input = clientSocket.getInputStream();
-		
-//			sendMessage(new TextMessage(
-//					"Connection to MSRG Echo server established: "
-//					+ clientSocket.getLocalAddress() + " / "
-//					+ clientSocket.getLocalPort()));
 			
 			while(isOpen) {
 				try {
@@ -228,9 +223,14 @@ public class KVServerComm implements Runnable {
 		}
 		
 		msgBytes = tmp;
-		logger.debug(Arrays.toString(msgBytes));
+		logger.info(Arrays.toString(msgBytes));
+		KVMessage msg;
 		/* build final String */
-		KVMessage msg = new KVMessage(msgBytes);
+		try {
+			msg = new KVMessage(msgBytes);
+		} catch (Exception e) {
+			msg = new KVMessage("An error occurred");
+		}
 		logger.info("RECEIVE \t<" 
 				+ clientSocket.getInetAddress().getHostAddress() + ":" 
 				+ clientSocket.getPort() + ">: '" 
