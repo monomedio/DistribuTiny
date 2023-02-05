@@ -114,6 +114,15 @@ public class KVServerComm implements Runnable {
 	private KVMessage handleMessage(KVMessage msg){
 		KVMessage res;
 		boolean keyExists;
+		if (msg.getKey() != null && msg.getKey().length() > 10 ) {
+			logger.info("Key (" + msg.getKey().length() +" too long");
+			return res = new KVMessage(IKVMessage.StatusType.FAILED, "Key too long!");
+		}
+
+		if (msg.getValue() != null && msg.getValue().length() > 60000) {
+			logger.info("Value (" + msg.getValue().length() +" too long\"");
+			return res = new KVMessage(IKVMessage.StatusType.FAILED, "Value too long");
+		}
 		try{
 			switch (msg.getStatus()) {
 				case GET:
