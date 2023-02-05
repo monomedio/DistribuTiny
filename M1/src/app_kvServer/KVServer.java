@@ -325,6 +325,10 @@ public class KVServer implements IKVServer {
             System.out.println("Error! Invalid arguments provided!");
             printHelp();
             System.exit(1);
+        } catch (IllegalArgumentException iae) {
+            System.out.println("Error! Port must be provided!");
+            printHelp();
+            System.exit(1);
         }
     }
 }
