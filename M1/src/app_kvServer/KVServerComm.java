@@ -66,6 +66,8 @@ public class KVServerComm implements Runnable {
 				} catch (IllegalArgumentException ia) {
 					logger.error("Client was terminated!");
 					isOpen = false;
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
 			}
 			
@@ -115,7 +117,7 @@ public class KVServerComm implements Runnable {
 		KVMessage res;
 		boolean keyExists;
 		if (msg.getKey() != null && msg.getKey().length() > 10 ) {
-			logger.info("Key (" + msg.getKey().length() +" too long");
+			logger.info("Key (" + msg.getKey().length() +") too long");
 			return res = new KVMessage(IKVMessage.StatusType.FAILED, "Key too long!");
 		}
 
@@ -238,7 +240,7 @@ public class KVServerComm implements Runnable {
 		try {
 			msg = new KVMessage(msgBytes);
 		} catch (Exception e) {
-			msg = new KVMessage(KVMessage.StatusType.FAILED, "An error occurred");
+			msg = new KVMessage(KVMessage.StatusType.FAILED, "Error");
 		}
 		logger.info("RECEIVE \t<" 
 				+ clientSocket.getInetAddress().getHostAddress() + ":" 

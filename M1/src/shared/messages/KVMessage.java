@@ -40,7 +40,14 @@ public class KVMessage implements IKVMessage {
      * @param messageBytes a UTF-8 encoded byte array representing the message
      */
     public KVMessage(byte[] messageBytes) {
-        this.messageBytes = messageBytes;
+
+        byte[] ctrBytes = new byte[]{RETURN, LINE_FEED};
+        byte[] tmp = new byte[messageBytes.length + ctrBytes.length];
+
+        System.arraycopy(messageBytes, 0, tmp, 0, messageBytes.length);
+        System.arraycopy(ctrBytes, 0, tmp, messageBytes.length, ctrBytes.length);
+        this.messageBytes = tmp;
+
         String[] argsArray = messageBytesToArgsArray(messageBytes);
         this.status = StatusType.valueOf(argsArray[0]);
         this.key = argsArray[1];
