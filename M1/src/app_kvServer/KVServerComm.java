@@ -91,6 +91,10 @@ public class KVServerComm implements Runnable {
 	}
 	private KVMessage handlePUTMessage(KVMessage msg) throws Exception {
 		boolean keyExists = kvServer.inCache(msg.getKey()) || kvServer.inStorage(msg.getKey());
+		if (!keyExists && msg.getValue().equals("null")) {
+			logger.debug("Trying to DELETE for non-existent key:" + msg.getKey());
+			return new KVMessage(IKVMessage.StatusType.DELETE_ERROR, msg.getKey());
+		}
 		boolean validDeletion = keyExists && (Objects.equals(msg.getValue(), "null"));
 		KVMessage res;
 		if (validDeletion) {
@@ -147,12 +151,12 @@ public class KVServerComm implements Runnable {
 			//TODO: Can client handle error messages?
 			logger.debug(e.getMessage());
 
-//			switch (e.getMessage()) {
-//				case "PUT_ERROR":
-//					return res = new KVMessage(IKVMessage.StatusType.PUT_ERROR, msg.key(), msg.getValue());
-//				case "GET_ERROR":
-//					return res = new KVMessage(IKVMessage.StatusType.GET_ERROR, msg.getKey());
-//			}
+			switch (e.getMessage()) {
+				case "PUT_ERROR":
+					return res = new KVMessage(IKVMessage.StatusType.PUT_ERROR, msg.getKey(), msg.getValue());
+				case "GET_ERROR":
+					return res = new KVMessage(IKVMessage.StatusType.GET_ERROR, msg.getKey());
+			}
 			return res = new KVMessage(IKVMessage.StatusType.FAILED, "An IO-error occurred at the server");
 		}
 

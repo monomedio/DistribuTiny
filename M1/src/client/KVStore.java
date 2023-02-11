@@ -84,7 +84,7 @@ public class KVStore implements KVCommInterface {
 //		System.out.println(Arrays.toString(msgBytes));
 		this.output.write(msgBytes, 0, msgBytes.length);
 		this.output.flush();
-		logger.info("Send message:\t '" + msg.getMessage() + "'");
+		logger.info("Send message:\t '" + msg.getMessage().substring(0, msg.getMessage().length() - 2) + "'");
 	}
 
 	private IKVMessage receiveMessage() throws IOException {
@@ -143,7 +143,7 @@ public class KVStore implements KVCommInterface {
 
 		/* build final String */
 		IKVMessage msg = new KVMessage(msgBytes);
-		logger.info("Receive message:\t '" + msg.getMessage() + "'");
+		logger.info("Receive message:\t '" + msg.getMessage().substring(0, msg.getMessage().length() - 2) + "'");
 		return msg;
 	}
 }
