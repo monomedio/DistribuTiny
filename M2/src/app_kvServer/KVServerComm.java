@@ -24,8 +24,6 @@ public class KVServerComm implements Runnable {
 	private static Logger logger = Logger.getRootLogger();
 
 	private boolean isOpen;
-
-	//TODO Enforce size limits
 	private static final int BUFFER_SIZE = 1000;
 	private static final int DROP_SIZE = 129 * BUFFER_SIZE;
 
@@ -90,6 +88,11 @@ public class KVServerComm implements Runnable {
 		}
 	}
 	private KVMessage handlePUTMessage(KVMessage msg) throws Exception {
+
+		if (kvServer.isWriteLocked()) {
+			logger.info("Server is currently write locked");
+			return new KVMessage(IKVMessage.StatusType.SERVER_WRITE_LOCK, "error");
+		}
 		boolean keyExists = kvServer.inCache(msg.getKey()) || kvServer.inStorage(msg.getKey());
 		if (!keyExists && msg.getValue().equals("null")) {
 			logger.debug("Trying to DELETE for non-existent key:" + msg.getKey());
@@ -119,6 +122,9 @@ public class KVServerComm implements Runnable {
 	}
 	private KVMessage handleMessage(KVMessage msg){
 		KVMessage res;
+		if (kvServer.isStopped()) {
+			return res = new KVMessage(IKVMessage.StatusType.SERVER_STOPPED, "error");
+		}
 		boolean keyExists;
 		if (msg.getKey() != null && msg.getKey().length() > 10 ) {
 			logger.info("Key (" + msg.getKey().length() +") too long");
@@ -128,6 +134,11 @@ public class KVServerComm implements Runnable {
 		if (msg.getValue() != null && msg.getValue().length() > 60000) {
 			logger.info("Value (" + msg.getValue().length() +" too long\"");
 			return res = new KVMessage(IKVMessage.StatusType.FAILED, "Value too long");
+		}
+
+		if (!kvServer.keyInRange(msg.getKey())) {
+			logger.info("KVServer not responsible for this key:" + msg.getKey());
+			return res = new KVMessage(IKVMessage.StatusType.SERVER_NOT_RESPONSIBLE, "error");
 		}
 		try{
 			switch (msg.getStatus()) {
@@ -190,14 +201,8 @@ public class KVServerComm implements Runnable {
 		if (read == 13 || read == 10) {
 			read = (byte) input.read();
 		}
-//		logger.info("First Char: " + read);
-//		Check if stream is closed (read returns -1)
-//		if (read == -1){
-//			TextMessage msg = new TextMessage("");
-//			return msg;
-//		}
 
-		while(/*read != 13 &&*/  read != 13 && read !=-1 && reading) {/* CR, LF, error */
+		while(read != 13 && read !=-1 && reading) {/* CR, LF, error */
 			/* if buffer filled, copy to msg array */
 			if(index == BUFFER_SIZE) {
 				if(msgBytes == null){

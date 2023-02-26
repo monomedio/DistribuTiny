@@ -1,8 +1,8 @@
 package app_kvServer;
 
 import app_kvServer.persistence.Storage;
-import client.KVCommInterface;
 import logger.LogSetup;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
@@ -11,9 +11,6 @@ import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.InetAddress;
-
-import java.net.*;
-import java.io.*;
 import java.util.*;
 
 public class KVServer implements IKVServer {
@@ -29,9 +26,15 @@ public class KVServer implements IKVServer {
 
     private boolean running;
 
+    private String status; //STOPPED. WRITE_LOCKED or ACTIVE.
+
     private Storage store;
 
     private InetAddress address;
+
+    private String lowerRange; //inclusive
+
+    private String upperRange; //inclusive
 
     /**
      * Start KV Server at given port
@@ -48,6 +51,7 @@ public class KVServer implements IKVServer {
      *
      */
     public KVServer(int port, int cacheSize, String strategy, String path, InetAddress address) {
+        this.status = "STOPPED";
         this.port = port;
         this.cacheSize = cacheSize;
         this.cacheStrategy = CacheStrategy.valueOf(strategy);
@@ -125,6 +129,23 @@ public class KVServer implements IKVServer {
         store.clearStorage();
     }
 
+    public boolean isStopped() {
+        return this.status.equals("STOPPED");
+    }
+
+    public boolean isWriteLocked() {
+        return this.status.equals("WRITE_LOCKED");
+    }
+
+    public boolean keyInRange(String key) {
+        String hashedKey = DigestUtils.md5Hex(key);
+        return (hashedKey.compareTo(this.lowerRange) >= 0) && (hashedKey.compareTo(this.upperRange) <= 0);
+    }
+
+    public void setRange(String lowerRange, String upperRange) {
+        this.lowerRange = lowerRange;
+        this.upperRange = upperRange;
+    }
     @Override
     public void run() {
         running = initializeServer();

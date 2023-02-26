@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.util.HashMap;
 
 public class Storage {
 
@@ -55,8 +56,27 @@ public class Storage {
         return Files.readString(FileSystems.getDefault().getPath(path, key));
     }
 
+    public HashMap<String, String> createMap() throws IOException {
+        File folder = new File(path);
+        HashMap<String, String> map = new HashMap<String, String>();
+        for (final File fileEntry : folder.listFiles()) {
+            if (fileEntry.isDirectory()) {
+                System.out.println("Ignoring directory");
+            } else {
+                System.out.println(Files.readString(fileEntry.toPath()));
+                map.put(fileEntry.getName(), Files.readString(fileEntry.toPath()));
+            }
+        }
+        return map;
+    }
+
     public static void main(String[] args) {
         Storage store = new Storage("sample_keys");
         System.out.println(store.put("hello", "bye"));
+        try {
+            store.createMap();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -12,7 +12,12 @@ public interface IKVMessage {
 		PUT_ERROR, 		/* Put - request not successful */
 		DELETE_SUCCESS, /* Delete - request successful */
 		DELETE_ERROR, 	/* Delete - request not successful */
-		FAILED 			/* All other cases*/
+		FAILED,			/* All other cases*/
+		SERVER_NOT_RESPONSIBLE, /* When key not in server range DO NOT RETURN ERROR, TRY RETRY */
+		SERVER_WRITE_LOCK, /* Can only serve get requests */
+		SERVER_STOPPED,  /* Server not bootstrapped by ECS yet */
+		KEYRANGE_SUCCESS /* Message contains metadata */
+
 	}
 
 	/**
