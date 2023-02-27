@@ -70,6 +70,17 @@ public class Storage {
         return map;
     }
 
+    public boolean processMap(HashMap<String, String> map) {
+        try {
+            for (String key: map.keySet()) {
+                Files.write(FileSystems.getDefault().getPath(path, key), map.get(key).getBytes());
+            }
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
     public static void main(String[] args) {
         Storage store = new Storage("sample_keys");
         System.out.println(store.put("hello", "bye"));

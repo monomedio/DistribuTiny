@@ -136,9 +136,19 @@ public class ECSListener implements Runnable {
     public void handleMessage(KVMessage message) {
         // Message to assign key ranges
         //kvServer.setRange();
-        // Message to re-assign key ranges
-        // Message to activate the server
+
+        // Message to get all data from server
+        // kvServer.exportData()
+
+        // Message to add data to Server
+        // kvServer.importData(map)
+
+        // Message to change status
+        // kvServer.setStatus(status)
+
         // Message to update metadata
+        // kvServer.setMetadata(map)
+
         // Message to shut down server
     }
 }

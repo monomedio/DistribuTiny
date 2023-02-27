@@ -36,6 +36,8 @@ public class KVServer implements IKVServer {
 
     private String upperRange; //inclusive
 
+    private HashMap<String, String> metadata;
+
     /**
      * Start KV Server at given port
      *
@@ -137,15 +139,40 @@ public class KVServer implements IKVServer {
         return this.status.equals("WRITE_LOCKED");
     }
 
+    public boolean isActive() {
+        return this.status.equals("ACTIVE");
+    }
+
     public boolean keyInRange(String key) {
         String hashedKey = DigestUtils.md5Hex(key);
         return (hashedKey.compareTo(this.lowerRange) >= 0) && (hashedKey.compareTo(this.upperRange) <= 0);
+    }
+
+    public void setStatus(String status) {
+        if (!(status.equals("STOPPED") || status.equals("ACTIVE") || status.equals("WRITE_LOCKED"))) {
+            logger.error("Invalid status type");
+            return;
+        }
+        this.status = status;
     }
 
     public void setRange(String lowerRange, String upperRange) {
         this.lowerRange = lowerRange;
         this.upperRange = upperRange;
     }
+
+    public Map<String, String> exportData() throws IOException {
+        return store.createMap();
+    }
+
+    public boolean importData(HashMap<String, String> map) {
+        return store.processMap(map);
+    }
+
+    public void setMetadata(HashMap<String, String> map) {
+        this.metadata = map;
+    }
+
     @Override
     public void run() {
         running = initializeServer();
