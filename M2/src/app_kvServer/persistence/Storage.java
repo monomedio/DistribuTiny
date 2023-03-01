@@ -81,6 +81,7 @@ public class Storage {
         }
     }
 
+    // Used in testing
     public static void main(String[] args) {
         Storage store = new Storage("sample_keys");
         System.out.println(store.put("hello", "bye"));

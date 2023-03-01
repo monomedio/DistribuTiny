@@ -188,7 +188,7 @@ public class KVServer implements IKVServer {
                     new Thread(connection).start();
 
                     logger.info("Connected to "
-                            + client.getInetAddress().getHostName()
+                            + client.getInetAddress().getHostAddress()
                             + " on port " + client.getPort());
                 } catch (IOException e) {
                     logger.error("Error! " +
