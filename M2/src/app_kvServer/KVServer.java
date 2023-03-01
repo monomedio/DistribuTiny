@@ -34,7 +34,7 @@ public class KVServer implements IKVServer {
 
     private String lowerRange; //inclusive
 
-    private String upperRange; //inclusive
+    private String upperRange; //exclusive
 
     private HashMap<String, String> metadata;
 
@@ -145,7 +145,10 @@ public class KVServer implements IKVServer {
 
     public boolean keyInRange(String key) {
         String hashedKey = DigestUtils.md5Hex(key);
-        return (hashedKey.compareTo(this.lowerRange) >= 0) && (hashedKey.compareTo(this.upperRange) <= 0);
+        if (this.lowerRange.compareTo(this.upperRange) >= 0) {
+            return (hashedKey.compareTo(this.lowerRange) >= 0) || (hashedKey.compareTo(this.upperRange) < 0);
+        }
+        return (hashedKey.compareTo(this.lowerRange) >= 0) && (hashedKey.compareTo(this.upperRange) < 0);
     }
 
     public void setStatus(String status) {
