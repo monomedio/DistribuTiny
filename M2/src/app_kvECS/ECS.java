@@ -1,18 +1,14 @@
 package app_kvECS;
 
 import logger.LogSetup;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import shared.messages.KVMessage;
 
 import java.io.IOException;
-import java.net.BindException;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.net.*;
+import java.util.*;
 
 public class ECS implements IECS {
 
@@ -24,32 +20,94 @@ public class ECS implements IECS {
     private ServerSocket serverSocket;
 
     private HashMap<String, String> metadata;
+    private HashMap<String, ECSComm> connections;
 
 
     public ECS(int port, InetAddress address) {
         this.port = port;
         this.address = address;
-        this.metadata = new HashMap<String, String>();
+        this.metadata = new HashMap<>();
+        this.connections = new HashMap<>();
     }
 
-    public addNode(String ip, String port, ) {
-        // Determine ring position by hashing <ip>:<port>
+    /**
+     * Stringify the metadata HashMap
+     *
+     * @return a String in the format of "<kr-from>, <kr-to>, <ip:port>; <kr-from>, <kr-to>, <ip:port>" for example,
+     * assuming there are only two nodes recorded the metadata
+     */
+    private String metadataToString() {
+        // TODO
 
-        // Recalculate and update metadata
-
-        // Send metadata to storage server -> successor (next server in ring) WRITE_LOCKs itself
-
-        // Send affected data items to new server
-
-        // IF Receive successor notification THEN update metadata for ALL servers
-        // release WRITE_LOCK on successor (next server in ring) and delete data no longer handled by server
-
-
-        return;
+        return null;
     }
 
-    public deleteNode() {
-        return ;
+    public void broadcastMetadata() {
+        // TODO: construct message that will be sent to each server
+        // TODO: send to metadata to each server
+
+    }
+
+    /**
+     * Hashes ipAndPort <ip:port> and updates metadata.
+     * metadata entry:
+         * Key: "<ip:port>"
+         * Value: "<lowerRange>,<upperRange>"
+     * Returns successor ECSComm if exists, null if it doesn't
+    */
+    public ECSComm updateMetadataAdd(String ipAndPort) {
+        String hash = DigestUtils.md5Hex(ipAndPort);
+        if (this.metadata.isEmpty()) {
+            this.metadata.put(ipAndPort, hash + "," + hash);
+            logger.info("Successfully added server: " + ipAndPort + " to empty ring");
+            return null;
+        } else {
+            // Key whose lowerRange is the smallest
+            String minKey = null;
+            // Key whose lowerRange is the smallest that is larger than hash
+            String targetKey = null;
+
+            for (Map.Entry<String, String> entry : this.metadata.entrySet()) {
+                String entryKey = entry.getKey();
+                String entryLower = entry.getValue().split(",")[0];
+
+                // minKey computation
+                if (minKey == null) {
+                    minKey = entryKey;
+                } else if (this.metadata.get(minKey).split(",")[0].compareTo(entryLower) > 0) { // if minKey's lowerRange is larger than entryLower
+                    minKey = entryKey;
+                }
+
+                // targetKey computation
+                if ((targetKey == null)) {
+                    if (hash.compareTo(entryLower) < 0) {
+                        targetKey = entryKey;
+                    }
+                } else {
+                    if ((this.metadata.get(targetKey).split(",")[0].compareTo(entryLower) > 0) && (hash.compareTo(entryLower) < 0)) {
+                        targetKey = entryKey;
+                    }
+                }
+            }
+
+            // minKey will be its successor
+            if (targetKey == null) {
+                String[] minLowerUpper = this.metadata.get(minKey).split(",");
+                String minLower = minLowerUpper[0];
+                String minUpper = minLowerUpper[1];
+                this.metadata.put(minKey, minLower + "," + hash);
+                this.metadata.put(ipAndPort, hash + "," + minUpper);
+                return this.connections.get(minKey);
+            } else { // targetKey is successor
+                String[] targetLowerUpper = this.metadata.get(targetKey).split(",");
+                String targetLower = targetLowerUpper[0];
+                String targetUpper = targetLowerUpper[1];
+                this.metadata.put(targetKey, targetLower + "," + hash);
+                this.metadata.put(ipAndPort, hash + "," + targetUpper);
+                return this.connections.get(targetKey);
+            }
+
+        }
     }
 
     @Override
@@ -61,10 +119,13 @@ public class ECS implements IECS {
                 try {
                     Socket client = serverSocket.accept();
                     ECSComm connection = new ECSComm(client, this);
+                    // Add new connection to the connections HashMap
+                    this.connections.put(client.getInetAddress().getHostAddress() + ":" + client.getPort(), connection);
+                    logger.info("New connection registered with ECS");
                     new Thread(connection).start();
 
                     logger.info("Connected to "
-                            + client.getInetAddress().getHostName()
+                            + client.getInetAddress().getHostAddress()
                             + " on port " + client.getPort());
                 } catch (IOException e) {
                     logger.error("Error! " +
@@ -152,87 +213,235 @@ public class ECS implements IECS {
     }
 
     public static void main(String[] args) {
-        try {
-            // set variables to default
-            boolean help = false;
+//        try {
+//            ECS ecs = new ECS(8008, InetAddress.getByName("127.0.0.1"));
+//            ecs.updateMetadataAdd("127.0.0.1:8008");
+//        } catch (UnknownHostException e) {
+//            throw new RuntimeException(e);
+//        }
 
-            int port = -1;
-            InetAddress addr = InetAddress.getByName("127.0.0.1");
-            String logDir = "ECS.log"; // default is curr directory
-            String logLevelStr = "ALL";
+//        String ipAndPort = "127.0.0.1:3";
+//        String hash = "80e7bcff701a97e48834556f72689200";
+//
+//        HashMap<String, String> metadata = new HashMap();
+//        HashMap connections = new HashMap();
+//
+//        String hash1 = "80e7bcff701a97e48834556f72689308";
+//        String hash2 = "0".repeat(32);
+//
+//        metadata.put("127.0.0.1:1", hash1 + "," + hash2);
+//        connections.put("127.0.0.1:1", "ECSComm 127.0.0.1:1");
+//
+//
+//        metadata.put("127.0.0.1:2", hash2 + "," + hash1);
+//        connections.put("127.0.0.1:2", "ECSComm 127.0.0.1:2");
+//
+//
+//        if (metadata.isEmpty()) {
+//            metadata.put(ipAndPort, hash + "," + hash);
+//            System.out.println("bruh");
+//        } else {
+//            // Key whose lowerRange is the smallest
+//            String minKey = null;
+//            // Key whose lowerRange is the smallest that is larger than hash
+//            String targetKey = null;
+//
+//            for (Map.Entry<String, String> entry : metadata.entrySet()) {
+//                String entryKey = entry.getKey();
+//                String entryLower = entry.getValue().split(",")[0];
+//
+//                // minKey computation
+//                if (minKey == null) {
+//                    minKey = entryKey;
+//                } else if (metadata.get(minKey).split(",")[0].compareTo(entryLower) > 0) { // if minKey's lowerRange is larger than entryLower
+//                    minKey = entryKey;
+//                }
+//
+//                // targetKey computation
+//                if ((targetKey == null)) {
+//                    if (hash.compareTo(entryLower) < 0) {
+//                        targetKey = entryKey;
+//                    }
+//                } else {
+//                    if ((metadata.get(targetKey).split(",")[0].compareTo(entryLower) > 0) && (hash.compareTo(entryLower) < 0)) {
+//                        targetKey = entryKey;
+//                    }
+//                }
+//            }
+//
+//            // minKey will be its successor
+//            if (targetKey == null) {
+//                String[] minLowerUpper = metadata.get(minKey).split(",");
+//                String minLower = minLowerUpper[0];
+//                String minUpper = minLowerUpper[1];
+//                metadata.put(minKey, minLower + "," + hash);
+//                metadata.put(ipAndPort, hash + "," + minUpper);
+//                System.out.println("Succeeded by minKey");
+//                System.out.println(connections.get(minKey));
+//            } else { // targetKey is successor
+//                String[] targetLowerUpper = metadata.get(targetKey).split(",");
+//                String targetLower = targetLowerUpper[0];
+//                String targetUpper = targetLowerUpper[1];
+//                metadata.put(targetKey, targetLower + "," + hash);
+//                metadata.put(ipAndPort, hash + "," + targetUpper);
+//                System.out.println("Succeeded by targetKey");
+//                System.out.println(connections.get(targetKey));
+//            }
 
 
-            // convert args to an ArrayList
-            List<String> tokens = new ArrayList<String>(Arrays.asList(args));
 
-            // parse commandline arguments
-            while (!tokens.isEmpty()){
-                String curr = tokens.get(0);
-
-                if (curr.equals("-h")) {
-                    help = true;
-                    printHelp();
-
-                    break;
-                } else {
-                    switch (curr) {
-                        case "-p":
-                            // sets the port of ECS
-                            port = Integer.parseInt(tokens.get(1));
-                            break;
-                        case "-a":
-                            // which address ECS should listen to
-                            addr = InetAddress.getByName(tokens.get(1));
-                            break;
-                        case "-l":
-                            // relative path of the logfile
-                            logDir = tokens.get(1);
-                            break;
-                        case "-ll":
-                            // LogLevel, e.g., INFO, ALL, ...,
-                            logLevelStr = tokens.get(1);
-                            break;
-                    }
-                    tokens.remove(1);
-                    tokens.remove(0);
-                }
-            }
-
-            // all are parsed
-            if (!help) {
-                Level logLevel = getLevel(logLevelStr);
-
-                new LogSetup(logDir, logLevel);
-                final ECS ecs = new ECS(port, addr);
-                Runtime.getRuntime().addShutdownHook(new Thread() {
-                    public void run() {
-                        ecs.close();
-                    }
-                });
-                ecs.run();
-            }
-        } catch (IOException e) {
-            System.out.println("Error! Unable to initialize logger!");
-            e.printStackTrace();
-            System.exit(1);
-        } catch (NumberFormatException nfe) {
-//            System.out.println("Error! Invalid argument <port>! Not a number!");
-//            System.out.println("Usage: KVServer <port> <cache size> <cache strategy>");
-            System.out.println("Error! Invalid arguments provided!");
-            printHelp();
-            System.exit(1);
-        } catch (NullPointerException e) {
-            System.out.println("Error! No argument given for mandatory variables.");
-            printHelp();
-            System.exit(1);
-        } catch (IndexOutOfBoundsException iobe) {
-            System.out.println("Error! Invalid arguments provided!");
-            printHelp();
-            System.exit(1);
-        } catch (IllegalArgumentException iae) {
-            System.out.println("Error! Port must be provided!");
-            printHelp();
-            System.exit(1);
-        }
+//        try {
+//            // set variables to default
+//            boolean help = false;
+//
+//            int port = -1;
+//            InetAddress addr = InetAddress.getByName("127.0.0.1");
+//            String logDir = "ECS.log"; // default is curr directory
+//            String logLevelStr = "ALL";
+//
+//
+//            // convert args to an ArrayList
+//            List<String> tokens = new ArrayList<String>(Arrays.asList(args));
+//
+//            // parse commandline arguments
+//            while (!tokens.isEmpty()){
+//                String curr = tokens.get(0);
+//
+//                if (curr.equals("-h")) {
+//                    help = true;
+//                    printHelp();
+//
+//                    break;
+//                } else {
+//                    switch (curr) {
+//                        case "-p":
+//                            // sets the port of ECS
+//                            port = Integer.parseInt(tokens.get(1));
+//                            break;
+//                        case "-a":
+//                            // which address ECS should listen to
+//                            addr = InetAddress.getByName(tokens.get(1));
+//                            break;
+//                        case "-l":
+//                            // relative path of the logfile
+//                            logDir = tokens.get(1);
+//                            break;
+//                        case "-ll":
+//                            // LogLevel, e.g., INFO, ALL, ...,
+//                            logLevelStr = tokens.get(1);
+//                            break;
+//                    }
+//                    tokens.remove(1);
+//                    tokens.remove(0);
+//                }
+//            }
+//
+//            // all are parsed
+//            if (!help) {
+//                Level logLevel = getLevel(logLevelStr);
+//
+//                new LogSetup(logDir, logLevel);
+//                final ECS ecs = new ECS(port, addr);
+//                Runtime.getRuntime().addShutdownHook(new Thread() {
+//                    public void run() {
+//                        ecs.close();
+//                    }
+//                });
+//                ecs.run();
+//            }
+//        } catch (IOException e) {
+//            System.out.println("Error! Unable to initialize logger!");
+//            e.printStackTrace();
+//            System.exit(1);
+//        } catch (NumberFormatException nfe) {
+////            System.out.println("Error! Invalid argument <port>! Not a number!");
+////            System.out.println("Usage: KVServer <port> <cache size> <cache strategy>");
+//            System.out.println("Error! Invalid arguments provided!");
+//            printHelp();
+//            System.exit(1);
+//        } catch (NullPointerException e) {
+//            System.out.println("Error! No argument given for mandatory variables.");
+//            printHelp();
+//            System.exit(1);
+//        } catch (IndexOutOfBoundsException iobe) {
+//            System.out.println("Error! Invalid arguments provided!");
+//            printHelp();
+//            System.exit(1);
+//        } catch (IllegalArgumentException iae) {
+//            System.out.println("Error! Port must be provided!");
+//            printHelp();
+//            System.exit(1);
+//        }
     }
 }
+
+// Paste into public method and uncomment to test updateMetadataAdd
+//        String ipAndPort = "127.0.0.1:3";
+//        String hash = "80e7bcff701a97e48834556f72689200";
+//
+//        HashMap<String, String> metadata = new HashMap();
+//        HashMap connections = new HashMap();
+//
+//        String hash1 = "80e7bcff701a97e48834556f72689308";
+//        String hash2 = "0".repeat(32);
+//
+//        metadata.put("127.0.0.1:1", hash1 + "," + hash2);
+//        connections.put("127.0.0.1:1", "ECSComm 127.0.0.1:1");
+//
+//
+//        metadata.put("127.0.0.1:2", hash2 + "," + hash1);
+//        connections.put("127.0.0.1:2", "ECSComm 127.0.0.1:2");
+//
+//
+//        if (metadata.isEmpty()) {
+//            metadata.put(ipAndPort, hash + "," + hash);
+//            System.out.println("bruh");
+//        } else {
+//            // Key whose lowerRange is the smallest
+//            String minKey = null;
+//            // Key whose lowerRange is the smallest that is larger than hash
+//            String targetKey = null;
+//
+//            for (Map.Entry<String, String> entry : metadata.entrySet()) {
+//                String entryKey = entry.getKey();
+//                String entryLower = entry.getValue().split(",")[0];
+//
+//                // minKey computation
+//                if (minKey == null) {
+//                    minKey = entryKey;
+//                } else if (metadata.get(minKey).split(",")[0].compareTo(entryLower) > 0) { // if minKey's lowerRange is larger than entryLower
+//                    minKey = entryKey;
+//                }
+//
+//                // targetKey computation
+//                if ((targetKey == null)) {
+//                    if (hash.compareTo(entryLower) < 0) {
+//                        targetKey = entryKey;
+//                    }
+//                } else {
+//                    if ((metadata.get(targetKey).split(",")[0].compareTo(entryLower) > 0) && (hash.compareTo(entryLower) < 0)) {
+//                        targetKey = entryKey;
+//                    }
+//                }
+//            }
+//
+//            // minKey will be its successor
+//            if (targetKey == null) {
+//                String[] minLowerUpper = metadata.get(minKey).split(",");
+//                String minLower = minLowerUpper[0];
+//                String minUpper = minLowerUpper[1];
+//                metadata.put(minKey, minLower + "," + hash);
+//                metadata.put(ipAndPort, hash + "," + minUpper);
+//                System.out.println("Succeeded by minKey");
+//                System.out.println(connections.get(minKey));
+//            } else { // targetKey is successor
+//                String[] targetLowerUpper = metadata.get(targetKey).split(",");
+//                String targetLower = targetLowerUpper[0];
+//                String targetUpper = targetLowerUpper[1];
+//                metadata.put(targetKey, targetLower + "," + hash);
+//                metadata.put(ipAndPort, hash + "," + targetUpper);
+//                System.out.println("Succeeded by targetKey");
+//                System.out.println(connections.get(targetKey));
+//            }
+//
+//        }
