@@ -16,8 +16,12 @@ public interface IKVMessage {
 		SERVER_NOT_RESPONSIBLE, /* When key not in server range DO NOT RETURN ERROR, TRY RETRY */
 		SERVER_WRITE_LOCK, /* Can only serve get requests */
 		SERVER_STOPPED,  /* Server not bootstrapped by ECS yet */
-		KEYRANGE_SUCCESS /* Message contains metadata */
-
+		KEYRANGE_SUCCESS, /* Message contains metadata */
+		TR_REQ, /* Initiating data transfer*/
+		TR_RES, /* Transfer data response */
+		TR_INIT, /* Initialize writing data into new server */
+		TR_SUCC, /* Successfully written data into new server*/
+		META_UPDATE /* Update metadata */
 	}
 
 	/**

@@ -51,22 +51,20 @@ public class ECSComm implements Runnable {
 
 			// TODO: Call updateMetadataAdd to hash ip:port and update metadata
 			ECSComm successorConnection = this.ecs.updateMetadataAdd(this.clientSocket.getInetAddress().getHostAddress() + ":" + this.clientSocket.getPort());
-			// TODO: if only one node in metadata then just update metadata for that server
+			// TODO: update metadata of new server
 			if (successorConnection == null) {
-				// TODO: send metadata update to ALL servers
+				// TODO: send metadata update to new server only
 			} else {
 				// TODO: else tell successor node (via ECSComm?) to WRITE_LOCK and start copying data
 				// TODO: wait for write success from new server after copying, then update metadata for all servers
 				// TODO: release WRITE_LOCK on successor after updating metadata, then remove data items it is no longer responsible for (memoize during data transfer?)
 			}
-
 			
 			while(isOpen) {
 				try {
 					KVMessage latestMsg = receiveMessage();
 					// TODO: refactor?
-					handleMessage(latestMsg);
-//					sendMessage(handleMessage(latestMsg));
+					sendMessage(handleMessage(latestMsg));
 				/* connection either terminated by the client or lost due to 
 				 * network problems*/	
 				} catch (IOException ioe) {
