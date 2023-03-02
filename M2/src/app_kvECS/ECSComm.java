@@ -48,11 +48,25 @@ public class ECSComm implements Runnable {
 		try {
 			output = clientSocket.getOutputStream();
 			input = clientSocket.getInputStream();
+
+			// TODO: Call updateMetadataAdd to hash ip:port and update metadata
+			ECSComm successorConnection = this.ecs.updateMetadataAdd(this.clientSocket.getInetAddress().getHostAddress() + ":" + this.clientSocket.getPort());
+			// TODO: if only one node in metadata then just update metadata for that server
+			if (successorConnection == null) {
+				// TODO: send metadata update to ALL servers
+			} else {
+				// TODO: else tell successor node (via ECSComm?) to WRITE_LOCK and start copying data
+				// TODO: wait for write success from new server after copying, then update metadata for all servers
+				// TODO: release WRITE_LOCK on successor after updating metadata, then remove data items it is no longer responsible for (memoize during data transfer?)
+			}
+
 			
 			while(isOpen) {
 				try {
 					KVMessage latestMsg = receiveMessage();
-					sendMessage(handleMessage(latestMsg));
+					// TODO: refactor?
+					handleMessage(latestMsg);
+//					sendMessage(handleMessage(latestMsg));
 				/* connection either terminated by the client or lost due to 
 				 * network problems*/	
 				} catch (IOException ioe) {
@@ -91,7 +105,6 @@ public class ECSComm implements Runnable {
 					return res = new KVMessage(IKVMessage.StatusType.FAILED, "Unknown request");
 				}
 		} catch (Exception e) {
-			//TODO: Can client handle error messages?
 			logger.debug(e.getMessage());
 
 			switch (e.getMessage()) {
