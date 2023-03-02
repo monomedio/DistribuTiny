@@ -16,7 +16,7 @@ public class Evaluator {
                 try {
                     new LogSetup("logs/testing/test.log", Level.ERROR);
                     new KVServer(50000, 10, "FIFO", "sample_keys",
-                            InetAddress.getByName("127.0.0.1")).run();
+                            InetAddress.getByName("127.0.0.1"), InetAddress.getByName("127.0.0.1"), 25).run();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

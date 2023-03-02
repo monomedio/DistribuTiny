@@ -38,6 +38,10 @@ public class KVServer implements IKVServer {
 
     private HashMap<String, String> metadata;
 
+    private InetAddress ecsIp;
+
+    private int ecsPort;
+
     /**
      * Start KV Server at given port
      *
@@ -52,14 +56,15 @@ public class KVServer implements IKVServer {
      *                 set to localhost by default
      *
      */
-    public KVServer(int port, int cacheSize, String strategy, String path, InetAddress address) {
+    public KVServer(int port, int cacheSize, String strategy, String path, InetAddress address, InetAddress ecsIp, int ecsPort) {
         this.status = "STOPPED";
         this.port = port;
         this.cacheSize = cacheSize;
         this.cacheStrategy = CacheStrategy.valueOf(strategy);
         this.store = new Storage(path);
-
         this.address = address;
+        this.ecsIp = ecsIp;
+        this.ecsPort = ecsPort;
     }
 
     @Override
@@ -184,7 +189,8 @@ public class KVServer implements IKVServer {
     @Override
     public void run() {
         running = initializeServer();
-
+        ECSListener listener = new ECSListener(this, ecsIp, ecsPort);
+        new Thread(listener).start();
         if (serverSocket != null) {
             while (this.running) {
                 try {
@@ -315,6 +321,8 @@ public class KVServer implements IKVServer {
             String logLevelStr = "ALL";
             int cSize = 21;
             String cStrat = "LRU";
+            InetAddress ecsAddr = InetAddress.getByName("127.0.0.1");
+            int ecsPort = -1;
 
             // convert args to an ArrayList
             List<String> tokens = new ArrayList<String>(Arrays.asList(args));
@@ -330,6 +338,10 @@ public class KVServer implements IKVServer {
                     break;
                 } else {
                     switch (curr) {
+                        case "-b":
+                            ecsAddr = InetAddress.getByName(tokens.get(1).split(":")[0]);
+                            ecsPort = Integer.parseInt(tokens.get(0).split(":")[1]);
+                            break;
                         case "-p":
                             // sets the port of the server
                             port = Integer.parseInt(tokens.get(1));
@@ -368,7 +380,7 @@ public class KVServer implements IKVServer {
                 Level logLevel = getLevel(logLevelStr);
 
                 new LogSetup(logDir, logLevel);
-                final KVServer kvServer = new KVServer(port, cSize, cStrat, stPath, addr);
+                final KVServer kvServer = new KVServer(port, cSize, cStrat, stPath, addr, ecsAddr, ecsPort);
                 Runtime.getRuntime().addShutdownHook(new Thread() {
                     public void run() {
                         kvServer.close();

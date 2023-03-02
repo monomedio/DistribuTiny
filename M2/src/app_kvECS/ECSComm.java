@@ -51,16 +51,16 @@ public class ECSComm implements Runnable {
 			output = clientSocket.getOutputStream();
 			input = clientSocket.getInputStream();
 			ecs.addServer(this.clientSocket.getInetAddress().getHostAddress() + ":" + this.clientSocket.getPort());
-			// TODO: Call updateMetadataAdd to hash ip:port and update metadata
-			ECSComm successorConnection = this.ecs.updateMetadataAdd(this.clientSocket.getInetAddress().getHostAddress() + ":" + this.clientSocket.getPort());
-			// TODO: update metadata of new server
-			if (successorConnection == null) {
-				// TODO: send metadata update to new server only
-			} else {
-				// TODO: else tell successor node (via ECSComm?) to WRITE_LOCK and start copying data
-				// TODO: wait for write success from new server after copying, then update metadata for all servers
-				// TODO: release WRITE_LOCK on successor after updating metadata, then remove data items it is no longer responsible for (memoize during data transfer?)
-			}
+//			// TODO: Call updateMetadataAdd to hash ip:port and update metadata
+//			ECSComm successorConnection = this.ecs.updateMetadataAdd(this.clientSocket.getInetAddress().getHostAddress() + ":" + this.clientSocket.getPort());
+//			// TODO: update metadata of new server
+//			if (successorConnection == null) {
+//				// TODO: send metadata update to new server only
+//			} else {
+//				// TODO: else tell successor node (via ECSComm?) to WRITE_LOCK and start copying data
+//				// TODO: wait for write success from new server after copying, then update metadata for all servers
+//				// TODO: release WRITE_LOCK on successor after updating metadata, then remove data items it is no longer responsible for (memoize during data transfer?)
+//			}
 
 			while(isOpen) {
 				try {

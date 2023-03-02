@@ -7,12 +7,9 @@ import shared.messages.KVMessage;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
-import java.net.BindException;
 import java.net.InetAddress;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 
 public class ECSListener implements Runnable {
@@ -147,7 +144,7 @@ public class ECSListener implements Runnable {
         }
     }
 
-    private String mapToString(Map<String, String> map) {
+    private String dataToString(Map<String, String> map) {
         StringBuilder kvString = new StringBuilder();
         for (Map.Entry<String, String> entry : map.entrySet()) {
             kvString.append(entry.getKey()).append(";").append(entry.getValue());
@@ -161,7 +158,7 @@ public class ECSListener implements Runnable {
         switch (message.getStatus()) {
             case TR_REQ:
                 kvServer.setStatus("WRITE_LOCKED");
-                data = mapToString(kvServer.exportData(message.getKey(), message.getValue()));
+                data = dataToString(kvServer.exportData(message.getKey(), message.getValue()));
                 data = data.substring(0, data.length() - 1);
                 sendMessage(new KVMessage(IKVMessage.StatusType.TR_RES, data));
                 break;

@@ -21,8 +21,9 @@ public class AllTests {
 			public void run() {
 				try {
 					new LogSetup("logs/testing/test.log", Level.ERROR);
+					//TODO: Broken test
 					new KVServer(50000, 10, "FIFO", "sample_keys",
-							InetAddress.getByName("127.0.0.1")).run();
+							InetAddress.getByName("127.0.0.1"), InetAddress.getByName("127.0.0.1"), 42).run();
 				} catch (IOException e) {
 					e.printStackTrace();
 				}

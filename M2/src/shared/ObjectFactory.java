@@ -18,7 +18,7 @@ public final class ObjectFactory {
     /*
      * Creates a KVServer object for auto-testing purposes
      */
-	public static IKVServer createKVServerObject(int port, int cacheSize, String strategy, String path, InetAddress address) {
-		return new KVServer(port, cacheSize, strategy, path, address);
+	public static IKVServer createKVServerObject(int port, int cacheSize, String strategy, String path, InetAddress address, InetAddress ecsAddress, int ecsPort) {
+		return new KVServer(port, cacheSize, strategy, path, address, ecsAddress, ecsPort);
 	}
 }
