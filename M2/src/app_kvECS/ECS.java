@@ -212,6 +212,14 @@ public class ECS implements IECS {
                 "-h", "Display the help.");
     }
 
+    public void addServer(String ipAndPort) throws IOException {
+        ECSComm successor = updateMetadataAdd(ipAndPort);
+        if (successor == null) {
+            // TODO: broadcast metadata
+            return;
+        }
+        successor.retrieveData(metadata.get(successor.getIpAndPort()));
+    }
     public static void main(String[] args) {
 //        try {
 //            ECS ecs = new ECS(8008, InetAddress.getByName("127.0.0.1"));

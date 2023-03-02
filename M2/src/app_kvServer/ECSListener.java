@@ -1,6 +1,7 @@
 package app_kvServer;
 
 import org.apache.log4j.Logger;
+import shared.messages.IKVMessage;
 import shared.messages.KVMessage;
 
 import java.io.BufferedInputStream;
@@ -11,6 +12,8 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ECSListener implements Runnable {
     private static final int BUFFER_SIZE = 1000;
@@ -48,6 +51,17 @@ public class ECSListener implements Runnable {
             return false;
         }
 
+    }
+
+    public void sendMessage(KVMessage msg) throws IOException {
+        byte[] msgBytes = msg.getMessageBytes();
+        logger.debug(Arrays.toString(msgBytes));
+        output.write(msgBytes, 0, msgBytes.length);
+        output.flush();
+        logger.info("SEND \t<"
+                + socket.getInetAddress().getHostAddress() + ":"
+                + socket.getPort() + ">: '"
+                + msg.getMessage() +"'");
     }
 
     private KVMessage receiveMessage() throws IOException {
@@ -133,7 +147,41 @@ public class ECSListener implements Runnable {
         }
     }
 
-    public void handleMessage(KVMessage message) {
+    private String mapToString(Map<String, String> map) {
+        StringBuilder kvString = new StringBuilder();
+        for (Map.Entry<String, String> entry : map.entrySet()) {
+            kvString.append(entry.getKey()).append(";").append(entry.getValue());
+            kvString.append(";");
+        }
+        return kvString.toString();
+    }
+
+    public void handleMessage(KVMessage message) throws IOException {
+        String data;
+        switch (message.getStatus()) {
+            case TR_REQ:
+                kvServer.setStatus("WRITE_LOCKED");
+                data = mapToString(kvServer.exportData(message.getKey(), message.getValue()));
+                data = data.substring(0, data.length() - 1);
+                sendMessage(new KVMessage(IKVMessage.StatusType.TR_RES, data));
+                break;
+            case TR_INIT:
+                data = message.getKey();
+                String[] keyVals = data.split(";");
+                if (keyVals.length % 2 != 0){
+                    logger.error("Data transfer failed. Missing key or value");
+                    sendMessage(new KVMessage(IKVMessage.StatusType.FAILED, "failed"));
+                    break;
+                }
+                if (kvServer.importData(keyVals)) {
+                    sendMessage(new KVMessage(IKVMessage.StatusType.TR_SUCC, "success"));
+                    break;
+                } else {
+                    logger.error("Couldn't store key-values at server");
+                    sendMessage(new KVMessage(IKVMessage.StatusType.FAILED, "failed"));
+                }
+        }
+
         // Message to assign key ranges
         //kvServer.setRange();
 

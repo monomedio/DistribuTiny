@@ -169,12 +169,12 @@ public class KVServer implements IKVServer {
         this.upperRange = upperRange;
     }
 
-    public Map<String, String> exportData() throws IOException {
-        return store.createMap();
+    public Map<String, String> exportData(String lowerRange, String upperRange) throws IOException {
+        return store.createMap(lowerRange, upperRange);
     }
 
-    public boolean importData(HashMap<String, String> map) {
-        return store.processMap(map);
+    public boolean importData(String[] keyAndVals) {
+        return store.processMap(keyAndVals);
     }
 
     public void setMetadata(HashMap<String, String> map) {

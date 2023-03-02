@@ -9,6 +9,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -48,7 +50,7 @@ public class ECSComm implements Runnable {
 		try {
 			output = clientSocket.getOutputStream();
 			input = clientSocket.getInputStream();
-
+			ecs.addServer(this.clientSocket.getInetAddress().getHostAddress() + ":" + this.clientSocket.getPort());
 			// TODO: Call updateMetadataAdd to hash ip:port and update metadata
 			ECSComm successorConnection = this.ecs.updateMetadataAdd(this.clientSocket.getInetAddress().getHostAddress() + ":" + this.clientSocket.getPort());
 			// TODO: update metadata of new server
@@ -59,7 +61,7 @@ public class ECSComm implements Runnable {
 				// TODO: wait for write success from new server after copying, then update metadata for all servers
 				// TODO: release WRITE_LOCK on successor after updating metadata, then remove data items it is no longer responsible for (memoize during data transfer?)
 			}
-			
+
 			while(isOpen) {
 				try {
 					KVMessage latestMsg = receiveMessage();
@@ -93,6 +95,7 @@ public class ECSComm implements Runnable {
 			}
 		}
 	}
+
 
 	private KVMessage handleMessage(KVMessage msg){
 		KVMessage res;
@@ -201,6 +204,18 @@ public class ECSComm implements Runnable {
 		return msg;
     }
 
+	public void retrieveData(String range) throws IOException {
+		String[] bothRange = range.split(",");
+		sendMessage(new KVMessage(IKVMessage.StatusType.TR_REQ, bothRange[0], bothRange[1]));
+	}
+
+	public void sendData(String data) throws IOException {
+		sendMessage(new KVMessage(IKVMessage.StatusType.TR_INIT, data));
+	}
+
+	public String getIpAndPort() {
+		return clientSocket.getInetAddress().getHostAddress() + ":" + clientSocket.getPort();
+	}
 	public static void main(String[] args) {
 
 	}

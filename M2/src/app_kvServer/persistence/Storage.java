@@ -1,5 +1,7 @@
 package app_kvServer.persistence;
 
+import org.apache.commons.codec.digest.DigestUtils;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -56,11 +58,24 @@ public class Storage {
         return Files.readString(FileSystems.getDefault().getPath(path, key));
     }
 
-    public HashMap<String, String> createMap() throws IOException {
+    public boolean keyInRange(String key, String lowerRange, String upperRange) {
+        String hashedKey = DigestUtils.md5Hex(key);
+        // if lowerRange is larger than upperRange
+        if (lowerRange.compareTo(upperRange) > 0) {
+            // hashedkey <= lowerRange and hasedkey > upperRange
+            return ((hashedKey.compareTo(lowerRange) <= 0) && hashedKey.compareTo(upperRange) > 0);
+        } else {
+            // lowerRange is smaller than upperRange (wrap around)
+            return ((hashedKey.compareTo(lowerRange) <= 0 && (upperRange.compareTo(hashedKey) > 0))) ||
+                    ((hashedKey.compareTo(lowerRange) > 0) && (upperRange.compareTo(hashedKey) < 0));
+        }
+    }
+
+    public HashMap<String, String> createMap(String lowerRange, String upperRange) throws IOException {
         File folder = new File(path);
         HashMap<String, String> map = new HashMap<String, String>();
         for (final File fileEntry : folder.listFiles()) {
-            if (fileEntry.isDirectory()) {
+            if (fileEntry.isDirectory() || keyInRange(fileEntry.getName(), lowerRange, upperRange)) {
                 System.out.println("Ignoring directory");
             } else {
                 System.out.println(Files.readString(fileEntry.toPath()));
@@ -70,10 +85,10 @@ public class Storage {
         return map;
     }
 
-    public boolean processMap(HashMap<String, String> map) {
+    public boolean processMap(String[] keyVals) {
         try {
-            for (String key: map.keySet()) {
-                Files.write(FileSystems.getDefault().getPath(path, key), map.get(key).getBytes());
+            for (int i = 1; i < keyVals.length; i+=2) {
+                Files.write(FileSystems.getDefault().getPath(path, keyVals[i - 1]), keyVals[i].getBytes());
             }
             return true;
         } catch (IOException e) {
@@ -83,12 +98,5 @@ public class Storage {
 
     // Used in testing
     public static void main(String[] args) {
-        Storage store = new Storage("sample_keys");
-        System.out.println(store.put("hello", "bye"));
-        try {
-            store.createMap();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 }
