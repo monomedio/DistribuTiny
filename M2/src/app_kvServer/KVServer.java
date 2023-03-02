@@ -149,10 +149,11 @@ public class KVServer implements IKVServer {
         if (this.lowerRange.compareTo(this.upperRange) > 0) {
             // hashedkey <= lowerRange and hasedkey > upperRange
             return ((hashedKey.compareTo(this.lowerRange) <= 0) && hashedKey.compareTo(this.upperRange) > 0);
+        } else {
+            // lowerRange is smaller than upperRange (wrap around)
+            return ((hashedKey.compareTo(lowerRange) <= 0 && (upperRange.compareTo(hashedKey) > 0))) ||
+                    ((hashedKey.compareTo(lowerRange) > 0) && (upperRange.compareTo(hashedKey) < 0));
         }
-        // lowerRange is smaller than upperRange (wrap around)
-        return ((hashedKey.compareTo(this.lowerRange) <= 0 &&
-                (this.upperRange.compareTo(hashedKey) > 0 || hashedKey.compareTo(this.upperRange) > 0)));
     }
 
     public void setStatus(String status) {
@@ -290,6 +291,19 @@ public class KVServer implements IKVServer {
     }
 
     public static void main(String[] args) {
+//        String hashedKey = "0".repeat(31) + "e";
+//        String upperRange = "f".repeat(32);
+//        String lowerRange = "d".repeat(32);
+//        // if lowerRange is larger than upperRange
+//        if (lowerRange.compareTo(upperRange) > 0) {
+//            // hashedkey <= lowerRange and hasedkey > upperRange
+//            System.out.println(((hashedKey.compareTo(lowerRange) <= 0) && hashedKey.compareTo(upperRange) > 0));
+//        } else {
+//            System.out.println();
+//        }
+//        // lowerRange is smaller than upperRange (wrap around)
+//
+//    }
         try {
             // set variables to default
             boolean help = false;
