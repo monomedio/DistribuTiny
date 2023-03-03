@@ -110,10 +110,10 @@ public class ECSComm implements Runnable {
 					String sampleKey = alternatingKV[0];
 					String responsibleIpPort = this.ecs.findResponsibleServer(sampleKey);
 					ECSComm responsibleECSComm = this.ecs.getECSComm(responsibleIpPort);
-					responsibleECSComm.sendData(msg.getValue());
+					responsibleECSComm.sendData(msg.getKey());
 					return null;
 				case TR_SUCC:
-
+					ecs.stopWaitForSucc();
 				default:
 					return res = new KVMessage(IKVMessage.StatusType.FAILED, "Unknown request");
 				}

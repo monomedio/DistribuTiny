@@ -4,6 +4,7 @@ import logger.LogSetup;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import shared.messages.IKVMessage;
 import shared.messages.KVMessage;
 
 import java.io.IOException;
@@ -22,34 +23,63 @@ public class ECS implements IECS {
     private HashMap<String, String> metadata;
     private HashMap<String, ECSComm> connections;
 
+    private boolean waitForSucc;
+
 
     public ECS(int port, InetAddress address) {
         this.port = port;
         this.address = address;
         this.metadata = new HashMap<>();
         this.connections = new HashMap<>();
+        this.waitForSucc = false;
+    }
+
+    public void stopWaitForSucc() {
+        this.waitForSucc = false;
     }
 
     /**
      * Stringify the metadata HashMap
      *
-     * @return a String in the format of "<kr-from>, <kr-to>, <ip:port>; <kr-from>, <kr-to>, <ip:port>" for example,
+     * @return a String in the format of "<kr-from>,<kr-to>,<ip:port>; <kr-from>,<kr-to>,<ip:port>;" for example,
      * assuming there are only two nodes recorded the metadata
      */
     private String metadataToString() {
-        // TODO
-
-        return null;
+        StringBuilder res = new StringBuilder();
+        for (Map.Entry entry : this.metadata.entrySet()) {
+            res.append(entry.getValue());
+            res.append(",");
+            res.append(entry.getKey());
+            res.append(";");
+        }
+        res.deleteCharAt(res.length() - 1);
+        return res.toString();
     }
 
-    public void broadcastMetadata() {
-        // TODO: construct message that will be sent to each server
-        // TODO: send to metadata to each server
-
+    /**
+     * Sends a META_UPDATE message containing updated metadata to all servers registered with ECS
+     * @throws IOException
+     */
+    public void broadcastMetadata() throws IOException {
+        // construct message that will be sent to each server
+        String res = metadataToString();
+        // send to metadata to each server
+        for (Map.Entry<String, ECSComm> entry : this.connections.entrySet()) {
+            entry.getValue().sendMessage(new KVMessage(IKVMessage.StatusType.META_UPDATE, "null", res));
+        }
     }
 
-    public void sendMetadata(ECSComm ecsComm) {
-        // TODO: turn metadata into message, then get ECSComm for ipAndPort and send META_UPDATE
+    /**
+     * Sends metadata to a specified server
+     * @param ipAndPort string "<ip>:<port>" of the server you want metadata to be sent to
+     * @throws IOException
+     */
+    public void sendMetadata(String ipAndPort) throws IOException {
+        // turn metadata into message, then get ECSComm for ipAndPort and send META_UPDATE
+        String metadataString = metadataToString();
+        ECSComm targetComm = getECSComm(ipAndPort);
+        KVMessage message = new KVMessage(IKVMessage.StatusType.META_UPDATE, "null", metadataString);
+        targetComm.sendMessage(message);
     }
 
     public ECSComm getECSComm(String key) {
@@ -261,13 +291,15 @@ public class ECS implements IECS {
 
     public synchronized void addServer(String ipAndPort) throws IOException {
         ECSComm successor = updateMetadataAdd(ipAndPort);
-        // TODO: send metadata to new server
         if (successor == null) {
             return;
         }
+        this.waitForSucc = true;
         successor.retrieveData(metadata.get(successor.getIpAndPort()));
-        // TODO: while loop with inTransfer boolean variable?
-        // TODO: broadcast updated metadata
+        // while loop to wait for a TR_SUCC
+        while (this.waitForSucc) {}
+        // broadcast updated metadata
+        broadcastMetadata();
     }
     public static void main(String[] args) {
 //        try {
