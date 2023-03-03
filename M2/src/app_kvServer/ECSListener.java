@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 public class ECSListener implements Runnable {
@@ -132,6 +133,7 @@ public class ECSListener implements Runnable {
     @Override
     public void run() {
         this.running = this.running && initializeListener();
+        logger.info("Listener started on " + socket.getLocalPort());
         if (socket != null) {
             while (this.running) {
                 try {
@@ -159,6 +161,7 @@ public class ECSListener implements Runnable {
             case TR_REQ:
                 kvServer.setStatus("WRITE_LOCKED");
                 data = dataToString(kvServer.exportData(message.getKey(), message.getValue()));
+                logger.debug(data);
                 data = data.substring(0, data.length() - 1);
                 sendMessage(new KVMessage(IKVMessage.StatusType.TR_RES, data));
                 break;
@@ -177,6 +180,18 @@ public class ECSListener implements Runnable {
                     logger.error("Couldn't store key-values at server");
                     sendMessage(new KVMessage(IKVMessage.StatusType.FAILED, "failed"));
                 }
+            case META_UPDATE:
+                data = message.getKey();
+                String[] metadata = data.split(";");
+                HashMap<String, String> metadataMap = new HashMap<>();
+                for (int i = 0; i < metadata.length; i++) {
+                    String[] record = metadata[i].split(",");
+                    if ((socket.getInetAddress().getHostAddress() + ":" + socket.getLocalPort()).compareTo(record[2]) == 0) {
+                        kvServer.setRange(record[0], record[1]);
+                    }
+                    metadataMap.put(record[2], record[0] + "," + record[1]);
+                }
+                kvServer.setMetadata(metadataMap);
         }
 
         // Message to assign key ranges

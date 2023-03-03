@@ -57,7 +57,7 @@ public class KVServer implements IKVServer {
      *
      */
     public KVServer(int port, int cacheSize, String strategy, String path, InetAddress address, InetAddress ecsIp, int ecsPort) {
-        this.status = "STOPPED";
+        this.status = "ACTIVE";
         this.port = port;
         this.cacheSize = cacheSize;
         this.cacheStrategy = CacheStrategy.valueOf(strategy);
@@ -342,7 +342,7 @@ public class KVServer implements IKVServer {
                     switch (curr) {
                         case "-b":
                             ecsAddr = InetAddress.getByName(tokens.get(1).split(":")[0]);
-                            ecsPort = Integer.parseInt(tokens.get(0).split(":")[1]);
+                            ecsPort = Integer.parseInt(tokens.get(1).split(":")[1]);
                             break;
                         case "-p":
                             // sets the port of the server
