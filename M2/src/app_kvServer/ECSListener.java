@@ -161,12 +161,19 @@ public class ECSListener implements Runnable {
             case TR_REQ:
                 kvServer.setStatus("WRITE_LOCKED");
                 data = dataToString(kvServer.exportData(message.getKey(), message.getValue()));
-                logger.debug(data);
+                if (data.length() == 0) {
+                    sendMessage(new KVMessage(IKVMessage.StatusType.TR_RES, data));
+                    break;
+                }
                 data = data.substring(0, data.length() - 1);
                 sendMessage(new KVMessage(IKVMessage.StatusType.TR_RES, data));
                 break;
             case TR_INIT:
                 data = message.getKey();
+                if (data.length() == 0) {
+                    sendMessage(new KVMessage(IKVMessage.StatusType.TR_SUCC, "success"));
+                    break;
+                }
                 String[] keyVals = data.split(";");
                 if (keyVals.length % 2 != 0){
                     logger.error("Data transfer failed. Missing key or value");
@@ -179,6 +186,7 @@ public class ECSListener implements Runnable {
                 } else {
                     logger.error("Couldn't store key-values at server");
                     sendMessage(new KVMessage(IKVMessage.StatusType.FAILED, "failed"));
+                    break;
                 }
             case META_UPDATE:
                 data = message.getKey();

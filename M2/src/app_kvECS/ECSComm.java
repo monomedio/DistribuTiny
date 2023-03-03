@@ -113,7 +113,9 @@ public class ECSComm implements Runnable {
 					responsibleECSComm.sendData(msg.getKey());
 					return null;
 				case TR_SUCC:
-					ecs.stopWaitForSucc();
+					//ecs.stopWaitForSucc();
+					ecs.broadcastMetadata();
+					return null;
 				default:
 					return res = new KVMessage(IKVMessage.StatusType.FAILED, "Unknown request");
 				}

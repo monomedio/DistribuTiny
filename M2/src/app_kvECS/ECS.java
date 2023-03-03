@@ -65,7 +65,7 @@ public class ECS implements IECS {
         String res = metadataToString();
         // send to metadata to each server
         for (Map.Entry<String, ECSComm> entry : this.connections.entrySet()) {
-            entry.getValue().sendMessage(new KVMessage(IKVMessage.StatusType.META_UPDATE, "null", res));
+            entry.getValue().sendMessage(new KVMessage(IKVMessage.StatusType.META_UPDATE, res));
         }
     }
 
@@ -292,22 +292,32 @@ public class ECS implements IECS {
     public synchronized void addServer(String ipAndPort) throws IOException {
         ECSComm successor = updateMetadataAdd(ipAndPort);
         if (successor == null) {
+            broadcastMetadata();
             return;
         }
         this.waitForSucc = true;
         successor.retrieveData(metadata.get(successor.getIpAndPort()));
         // while loop to wait for a TR_SUCC
-        while (this.waitForSucc) {}
-        // broadcast updated metadata
-        broadcastMetadata();
+//        while (this.waitForSucc) {}
+//        // broadcast updated metadata
+//        logger.info("Broadcasting data");
+//        broadcastMetadata();
     }
     public static void main(String[] args) {
-//        try {
-//            ECS ecs = new ECS(8008, InetAddress.getByName("127.0.0.1"));
-//            ecs.updateMetadataAdd("127.0.0.1:8008");
-//        } catch (UnknownHostException e) {
-//            throw new RuntimeException(e);
-//        }
+        String logDir = "server.log"; // default is curr directory
+        String logLevelStr = "ALL";
+        try {
+            Level logLevel = getLevel(logLevelStr);
+
+            new LogSetup(logDir, logLevel);
+            ECS ecs = new ECS(8008, InetAddress.getByName("127.0.0.1"));
+            //ecs.updateMetadataAdd("127.0.0.1:8008");
+            ecs.run();
+        } catch (UnknownHostException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
 //        String ipAndPort = "127.0.0.1:3";
 //        String hash = "80e7bcff701a97e48834556f72689200";
