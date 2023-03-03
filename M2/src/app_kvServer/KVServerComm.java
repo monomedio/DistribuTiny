@@ -135,7 +135,7 @@ public class KVServerComm implements Runnable {
 			logger.info("Value (" + msg.getValue().length() +" too long\"");
 			return res = new KVMessage(IKVMessage.StatusType.FAILED, "Value too long");
 		}
-
+		// TODO: send metadata to client when SERVER_NOT_RESPONSIBLE
 		if (!kvServer.keyInRange(msg.getKey())) {
 			logger.info("KVServer not responsible for this key:" + msg.getKey());
 			return res = new KVMessage(IKVMessage.StatusType.SERVER_NOT_RESPONSIBLE, "error");

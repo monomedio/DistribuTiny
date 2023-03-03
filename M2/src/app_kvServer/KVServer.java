@@ -281,8 +281,10 @@ public class KVServer implements IKVServer {
                 "%-30.30s  %-30s%n" +
                 "%-30.30s  %-30s%n" +
                 "%-30.30s  %-30s%n" +
+                "%-30.30s  %-30s%n" +
                 "%-30.30s  %-30s%n";
         System.out.printf(s,
+                "-b", "Sets the address and port of ECS. Format: <ip>:<port>",
                 "-p", "Sets the port of the server",
                 "-a", "Which address the server should listen to, set the default to localhost. Default: 127.0.0.1",
                 "-d", "Directory for files (Put here the files you need to persist the data)",

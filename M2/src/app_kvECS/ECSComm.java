@@ -65,8 +65,10 @@ public class ECSComm implements Runnable {
 			while(isOpen) {
 				try {
 					KVMessage latestMsg = receiveMessage();
-					// TODO: refactor?
-					sendMessage(handleMessage(latestMsg));
+					KVMessage handledMessage = handleMessage(latestMsg);
+					if (handledMessage != null) {
+						sendMessage(handledMessage);
+					}
 				/* connection either terminated by the client or lost due to 
 				 * network problems*/	
 				} catch (IOException ioe) {
@@ -102,6 +104,16 @@ public class ECSComm implements Runnable {
 
 		try{
 			switch (msg.getStatus()) {
+				case TR_RES:
+					// Assuming key1;value1;key2;value2;key3;value3 etc.
+					String[] alternatingKV = msg.getKey().split(";");
+					String sampleKey = alternatingKV[0];
+					String responsibleIpPort = this.ecs.findResponsibleServer(sampleKey);
+					ECSComm responsibleECSComm = this.ecs.getECSComm(responsibleIpPort);
+					responsibleECSComm.sendData(msg.getValue());
+					return null;
+				case TR_SUCC:
+
 				default:
 					return res = new KVMessage(IKVMessage.StatusType.FAILED, "Unknown request");
 				}
@@ -204,11 +216,22 @@ public class ECSComm implements Runnable {
 		return msg;
     }
 
+	/**
+	 * Used to send a TR_REQ message to successor node to initiate data transfer
+	 * @param range updated "<lower>,<upper>" ranges of the successor
+	 * @throws IOException
+	 */
 	public void retrieveData(String range) throws IOException {
 		String[] bothRange = range.split(",");
 		sendMessage(new KVMessage(IKVMessage.StatusType.TR_REQ, bothRange[0], bothRange[1]));
 	}
 
+	/**
+	 * Send a TR_INIT message to new server when adding a server for data transfer from successor
+	 *
+	 * @param data "key1,value1,key2,value2,..." alternating, comma separated keys and values
+	 * @throws IOException
+	 */
 	public void sendData(String data) throws IOException {
 		sendMessage(new KVMessage(IKVMessage.StatusType.TR_INIT, data));
 	}
@@ -216,6 +239,7 @@ public class ECSComm implements Runnable {
 	public String getIpAndPort() {
 		return clientSocket.getInetAddress().getHostAddress() + ":" + clientSocket.getPort();
 	}
+
 	public static void main(String[] args) {
 
 	}

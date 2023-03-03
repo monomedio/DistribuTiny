@@ -48,6 +48,32 @@ public class ECS implements IECS {
 
     }
 
+    public void sendMetadata(ECSComm ecsComm) {
+        // TODO: turn metadata into message, then get ECSComm for ipAndPort and send META_UPDATE
+    }
+
+    public ECSComm getECSComm(String key) {
+        return this.connections.get(key);
+    }
+
+    /**
+     * Find the server that is responsible for the given key
+     *
+     * @param sampleKey Key for which we're trying to find the responsible server
+     * @return "<ip>:<port>" string of the responsible server
+     */
+    public String findResponsibleServer(String sampleKey) {
+        for (Map.Entry<String, String> entry: this.metadata.entrySet()) {
+            String[] lowerUpper = entry.getValue().split(",");
+            String lower = lowerUpper[0];
+            String upper = lowerUpper[1];
+            if (keyInRange(sampleKey, lower, upper)) {
+                return entry.getKey();
+            }
+        }
+        return "No responsible server found";
+    }
+
     /**
      * Hashes ipAndPort <ip:port> and updates metadata.
      * metadata entry:
@@ -97,14 +123,14 @@ public class ECS implements IECS {
                 String minUpper = minLowerUpper[1];
                 this.metadata.put(minKey, minLower + "," + hash);
                 this.metadata.put(ipAndPort, hash + "," + minUpper);
-                return this.connections.get(minKey);
+                return getECSComm(minKey);
             } else { // targetKey is successor
                 String[] targetLowerUpper = this.metadata.get(targetKey).split(",");
                 String targetLower = targetLowerUpper[0];
                 String targetUpper = targetLowerUpper[1];
                 this.metadata.put(targetKey, targetLower + "," + hash);
                 this.metadata.put(ipAndPort, hash + "," + targetUpper);
-                return this.connections.get(targetKey);
+                return getECSComm(targetKey);
             }
 
         }
@@ -167,6 +193,27 @@ public class ECS implements IECS {
 
     //HELPERS
 
+    /**
+     * Determine whether a key (unhashed) is within the given lower and upper ranges
+     *
+     * @param key candidate key in determining whether it's in the range
+     * @param lower lower range
+     * @param upper upper range (exclusive)
+     * @return boolean value
+     */
+    private boolean keyInRange(String key, String lower, String upper) {
+        String hashedKey = DigestUtils.md5Hex(key);
+        // if lowerRange is larger than upperRange
+        if (lower.compareTo(upper) > 0) {
+            // hashedkey <= lowerRange and hasedkey > upperRange
+            return ((hashedKey.compareTo(lower) <= 0) && hashedKey.compareTo(upper) > 0);
+        } else {
+            // lowerRange is smaller than upperRange (wrap around)
+            return ((hashedKey.compareTo(lower) <= 0 && (upper.compareTo(hashedKey) > 0))) ||
+                    ((hashedKey.compareTo(lower) > 0) && (upper.compareTo(hashedKey) < 0));
+        }
+    }
+
     private static Level getLevel(String levelString) {
 
         if(levelString.equals(Level.ALL.toString())) {
@@ -212,13 +259,15 @@ public class ECS implements IECS {
                 "-h", "Display the help.");
     }
 
-    public void addServer(String ipAndPort) throws IOException {
+    public synchronized void addServer(String ipAndPort) throws IOException {
         ECSComm successor = updateMetadataAdd(ipAndPort);
+        // TODO: send metadata to new server
         if (successor == null) {
-            // TODO: broadcast metadata
             return;
         }
         successor.retrieveData(metadata.get(successor.getIpAndPort()));
+        // TODO: while loop with inTransfer boolean variable?
+        // TODO: broadcast updated metadata
     }
     public static void main(String[] args) {
 //        try {
