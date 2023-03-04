@@ -142,8 +142,8 @@ public class KVServer implements IKVServer {
     }
 
     @Override
-    public void clearStorage() {
-        store.clearStorage();
+    public boolean clearStorage() {
+        return store.clearStorage();
     }
 
     public boolean isStopped() {

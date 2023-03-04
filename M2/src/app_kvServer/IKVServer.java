@@ -69,7 +69,7 @@ public interface IKVServer {
     /**
      * Clear the storage of the server
      */
-    public void clearStorage();
+    public boolean clearStorage();
 
     /**
      * Starts running the server

@@ -24,7 +24,12 @@ public class Storage {
         File directory = new File(path);
         boolean deleted = true;
         for (File f : directory.listFiles()) {
-            deleted = deleted && f.delete();
+            if (f.isDirectory()) {
+                System.out.println("Ignoring directory");
+            } else {
+                System.out.println("Deleting " + f.getName());
+                deleted = deleted && f.delete();
+            }
         }
         return deleted;
     }
