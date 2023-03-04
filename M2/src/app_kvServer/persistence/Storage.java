@@ -60,6 +60,9 @@ public class Storage {
 
     public boolean keyInRange(String key, String lowerRange, String upperRange) {
         String hashedKey = DigestUtils.md5Hex(key);
+        if (hashedKey.compareTo(lowerRange) == 0) {
+            return true;
+        }
         // if lowerRange is larger than upperRange
         if (lowerRange.compareTo(upperRange) > 0) {
             // hashedkey <= lowerRange and hasedkey > upperRange

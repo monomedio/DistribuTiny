@@ -85,7 +85,7 @@ public class KVServer implements IKVServer {
     @Override
     public String getHostname() {
         if (this.serverSocket != null) {
-            return this.serverSocket.getInetAddress().getHostName();
+            return this.serverSocket.getInetAddress().getHostAddress();
         }
         return null;
     }
@@ -160,6 +160,9 @@ public class KVServer implements IKVServer {
 
     public boolean keyInRange(String key) {
         String hashedKey = DigestUtils.md5Hex(key);
+        if (hashedKey.compareTo(this.lowerRange) == 0) {
+            return true;
+        }
         // if lowerRange is larger than upperRange
         if (this.lowerRange.compareTo(this.upperRange) > 0) {
             // hashedkey <= lowerRange and hasedkey > upperRange
