@@ -174,14 +174,17 @@ public class KVServer implements IKVServer {
         this.upperRange = upperRange;
     }
 
-    public Map<String, String> exportData(String lowerRange, String upperRange) throws IOException {
+    public synchronized Map<String, String> exportData(String lowerRange, String upperRange) throws IOException {
         return store.createMap(lowerRange, upperRange);
     }
 
-    public boolean importData(String[] keyAndVals) {
+    public synchronized boolean importData(String[] keyAndVals) {
         return store.processMap(keyAndVals);
     }
 
+    public synchronized boolean removeRedundantData() {
+        return store.removeExtraData(this.lowerRange, this.upperRange);
+    }
     public void setMetadata(HashMap<String, String> map) {
         this.metadata = map;
     }
