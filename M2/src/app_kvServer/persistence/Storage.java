@@ -60,6 +60,9 @@ public class Storage {
 
     public boolean keyInRange(String key, String lowerRange, String upperRange) {
         String hashedKey = DigestUtils.md5Hex(key);
+        if (hashedKey.compareTo(lowerRange) == 0) {
+            return true;
+        }
         // if lowerRange is larger than upperRange
         if (lowerRange.compareTo(upperRange) > 0) {
             // hashedkey <= lowerRange and hasedkey > upperRange
@@ -75,7 +78,7 @@ public class Storage {
         File folder = new File(path);
         HashMap<String, String> map = new HashMap<String, String>();
         for (final File fileEntry : folder.listFiles()) {
-            if (fileEntry.isDirectory() || !keyInRange(fileEntry.getName(), lowerRange, upperRange)) {
+            if (fileEntry.isDirectory() || keyInRange(fileEntry.getName(), lowerRange, upperRange)) {
                 System.out.println("Ignoring directory");
             } else {
                 System.out.println(Files.readString(fileEntry.toPath()));

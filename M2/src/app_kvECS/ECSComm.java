@@ -57,10 +57,15 @@ public class ECSComm implements Runnable {
 			ecs.putConnection(this.clientListenerIpPort, this);
 			ecs.addServer(this.clientListenerIpPort);
 
+			//TODO: change info to debug
+			logger.info("Metadata after addition: " + ecs.metadataToString());
+
 			while(isOpen) {
 				try {
 					KVMessage latestMsg = receiveMessage();
 					KVMessage handledMessage = handleMessage(latestMsg);
+					// TODO: change info to debug
+					logger.info("Metadata after message handling: " + ecs.metadataToString());
 					if (handledMessage != null) {
 						sendMessage(handledMessage);
 					}
@@ -104,11 +109,12 @@ public class ECSComm implements Runnable {
 					String[] alternatingKV = msg.getKey().split(";");
 					String sampleKey = alternatingKV[0];
 					String responsibleIpPort = this.ecs.findResponsibleServer(sampleKey);
+					// TODO: delete or change to debug
+					logger.info("Responsible server: " + responsibleIpPort);
 					ECSComm responsibleECSComm = this.ecs.getECSComm(responsibleIpPort);
 					responsibleECSComm.sendData(msg.getKey());
 					return null;
 				case TR_SUCC:
-					//ecs.stopWaitForSucc();
 					ecs.broadcastMetadata();
 					return null;
 				case SHUTDOWN:
