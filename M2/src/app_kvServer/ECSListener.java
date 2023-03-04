@@ -196,10 +196,13 @@ public class ECSListener implements Runnable {
                     String[] record = metadata[i].split(",");
                     if ((socket.getInetAddress().getHostAddress() + ":" + socket.getLocalPort()).compareTo(record[2]) == 0) {
                         kvServer.setRange(record[0], record[1]);
+                        Boolean deleted = kvServer.removeRedundantData();
+                        logger.info("Deletion status:" + deleted);
                     }
                     metadataMap.put(record[2], record[0] + "," + record[1]);
                 }
                 kvServer.setMetadata(metadataMap);
+                kvServer.setStatus("ACTIVE");
         }
 
         // Message to assign key ranges

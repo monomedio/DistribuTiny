@@ -96,6 +96,18 @@ public class Storage {
         }
     }
 
+    public boolean removeExtraData(String lowerRange, String upperRange) {
+        File folder = new File(path);
+        Boolean deleted = true;
+        for (final File fileEntry : folder.listFiles()) {
+            if (fileEntry.isDirectory() || keyInRange(fileEntry.getName(), lowerRange, upperRange)) {
+                System.out.println("Ignoring directory");
+            } else {
+                deleted = deleted && fileEntry.delete();
+            }
+        }
+        return deleted;
+    }
     // Used in testing
     public static void main(String[] args) {
     }
