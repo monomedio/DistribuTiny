@@ -1,6 +1,12 @@
 package app_kvServer.caching;
 
 public class LFUCache implements Cache{
+
+    private int cacheSize;
+
+    public LFUCache(int cacheSize) {
+        this.cacheSize = cacheSize;
+    }
     @Override
     public boolean inCache(String key) {
         return false;

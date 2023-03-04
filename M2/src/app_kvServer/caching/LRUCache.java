@@ -1,6 +1,11 @@
 package app_kvServer.caching;
 
 public class LRUCache implements Cache{
+    private int cacheSize;
+
+    public LRUCache(int cacheSize) {
+        this.cacheSize = cacheSize;
+    }
     @Override
     public boolean inCache(String key) {
         return false;

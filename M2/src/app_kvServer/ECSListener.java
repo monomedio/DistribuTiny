@@ -53,7 +53,8 @@ public class ECSListener implements Runnable {
 
     public void shutdown() {
         try {
-            sendMessage(new KVMessage(IKVMessage.StatusType.SHUTDOWN, "shutdown"));
+            String data = dataToString(kvServer.exportData());
+            sendMessage(new KVMessage(IKVMessage.StatusType.SHUTDOWN, data));
         } catch (IOException e) {
             logger.error("Error occurred while trying to send a shutdown message to ECS");
         }
@@ -61,7 +62,7 @@ public class ECSListener implements Runnable {
 
     public void sendMessage(KVMessage msg) throws IOException {
         byte[] msgBytes = msg.getMessageBytes();
-        logger.debug(Arrays.toString(msgBytes));
+        //logger.debug(Arrays.toString(msgBytes));
         output.write(msgBytes, 0, msgBytes.length);
         output.flush();
         logger.info("SEND \t<"
@@ -124,7 +125,7 @@ public class ECSListener implements Runnable {
         }
 
         msgBytes = tmp;
-        logger.info(Arrays.toString(msgBytes));
+        //logger.info(Arrays.toString(msgBytes));
         KVMessage msg;
         /* build final String */
         try {

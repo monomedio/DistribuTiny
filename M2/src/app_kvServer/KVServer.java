@@ -1,5 +1,7 @@
 package app_kvServer;
 
+import app_kvServer.caching.Cache;
+import app_kvServer.caching.LFUCache;
 import app_kvServer.persistence.Storage;
 import logger.LogSetup;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -44,6 +46,8 @@ public class KVServer implements IKVServer {
 
     private ECSListener ecsListener;
 
+    private Cache cache;
+
     /**
      * Start KV Server at given port
      *
@@ -67,6 +71,10 @@ public class KVServer implements IKVServer {
         this.address = address;
         this.ecsIp = ecsIp;
         this.ecsPort = ecsPort;
+        switch (this.cacheStrategy) {
+            case LFU:
+                this.cache = new LFUCache();
+        }
     }
 
     @Override
@@ -180,6 +188,10 @@ public class KVServer implements IKVServer {
         return store.createMap(lowerRange, upperRange);
     }
 
+    public synchronized Map<String, String> exportData() throws IOException {
+        return store.createMap();
+    }
+
     public synchronized boolean importData(String[] keyAndVals) {
         return store.processMap(keyAndVals);
     }
@@ -198,7 +210,9 @@ public class KVServer implements IKVServer {
     public void run() {
         running = initializeServer();
         this.ecsListener = new ECSListener(this, ecsIp, ecsPort);
-        new Thread(ecsListener).start();
+        if (running) {
+            new Thread(ecsListener).start();
+        }
         if (serverSocket != null) {
             while (this.running) {
                 try {
@@ -250,8 +264,6 @@ public class KVServer implements IKVServer {
             }
         } catch (IOException ioe) {
             logger.error("Error closing server", ioe);
-        } finally {
-            System.exit(0);
         }
     }
 

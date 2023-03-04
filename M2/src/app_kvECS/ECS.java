@@ -323,8 +323,6 @@ public class ECS implements IECS {
 
         successor.retrieveData(metadata.get(successor.getClientListenerIpPort()));
 
-        logger.info("Broadcasting data");
-        broadcastMetadata();
     }
 
     public synchronized void removeServer(String ipAndPort) throws IOException {

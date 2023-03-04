@@ -5,11 +5,13 @@ import java.util.List;
 
 public class FIFOCache implements Cache{
 
+    private int cacheSize;
+
     private HashMap<String, String> cache;
     private int size;
 
-    public FIFOCache(int size) {
-
+    public FIFOCache(int cacheSize) {
+        this.cacheSize = cacheSize;
     }
     @Override
     public boolean inCache(String key) {
