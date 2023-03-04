@@ -52,6 +52,7 @@ public class ECSListener implements Runnable {
     }
 
     public void shutdown() {
+        kvServer.setStatus("WRITE_LOCKED");
         try {
             String data = dataToString(kvServer.exportData());
             sendMessage(new KVMessage(IKVMessage.StatusType.SHUTDOWN, data));
@@ -209,7 +210,7 @@ public class ECSListener implements Runnable {
                 data = message.getKey();
                 String[] metadata = data.split(";");
                 HashMap<String, String> metadataMap = new HashMap<>();
-                Boolean shutdown = false;
+//                Boolean shutdown = false;
                 for (int i = 0; i < metadata.length; i++) {
                     String[] record = metadata[i].split(",");
                     if (this.getServerIpAndPort().compareTo(record[2]) == 0) {
@@ -221,12 +222,16 @@ public class ECSListener implements Runnable {
                 }
                 kvServer.setMetadata(metadataMap);
                 if (!kvServer.inMetadata(getServerIpAndPort())) {
+                    kvServer.clearStorage();
+                    this.running = false;
+                    this.socket.close();
                     kvServer.close();
                 } else {
                     kvServer.setStatus("ACTIVE");
                 }
                 break;
             case LAST_ONE:
+                this.socket.close();
                 kvServer.close();
 
         }

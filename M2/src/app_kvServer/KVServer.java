@@ -73,7 +73,7 @@ public class KVServer implements IKVServer {
         this.ecsPort = ecsPort;
         switch (this.cacheStrategy) {
             case LFU:
-                this.cache = new LFUCache();
+                this.cache = new LFUCache(this.cacheSize);
         }
     }
 

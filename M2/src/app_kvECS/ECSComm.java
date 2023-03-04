@@ -118,20 +118,13 @@ public class ECSComm implements Runnable {
 					ecs.broadcastMetadata();
 					return null;
 				case SHUTDOWN:
-					ecs.removeServer(this.getClientListenerIpPort());
+					ecs.removeServer(this.getClientListenerIpPort(), msg.getKey());
 					return null;
 				default:
 					return res = new KVMessage(IKVMessage.StatusType.FAILED, "Unknown request");
 				}
 		} catch (Exception e) {
 			logger.debug(e.getMessage());
-
-			switch (e.getMessage()) {
-				case "PUT_ERROR":
-					return res = new KVMessage(IKVMessage.StatusType.PUT_ERROR, msg.getKey(), msg.getValue());
-				case "GET_ERROR":
-					return res = new KVMessage(IKVMessage.StatusType.GET_ERROR, msg.getKey());
-			}
 			return res = new KVMessage(IKVMessage.StatusType.FAILED, "An IO-error occurred at the server");
 		}
 

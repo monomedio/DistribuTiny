@@ -234,14 +234,14 @@ public class ECS implements IECS {
         successor.retrieveData(metadata.get(successor.getClientListenerIpPort()));
     }
 
-    public synchronized void removeServer(String ipAndPort) throws IOException {
+    public synchronized void removeServer(String ipAndPort, String data) throws IOException {
         ECSComm successor = updateMetadataRemove(ipAndPort);
         if (successor == null) {
             // Last server trying to shut down
             this.connections.get(ipAndPort).sendMessage(new KVMessage(IKVMessage.StatusType.LAST_ONE, "goodnight"));
             return;
         }
-        this.connections.get(ipAndPort).retrieveData(metadata.get(successor.getClientListenerIpPort()));
+        successor.sendData(data);
     }
 
     //HELPERS
