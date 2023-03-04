@@ -189,6 +189,10 @@ public class ECS implements IECS {
         }
     }
 
+    public void putConnection(String clientListenerIpAndport, ECSComm comm) {
+        this.connections.put(clientListenerIpAndport,comm);
+    }
+
     @Override
     public void run() {
         running = initializeECS();
@@ -198,8 +202,6 @@ public class ECS implements IECS {
                 try {
                     Socket client = serverSocket.accept();
                     ECSComm connection = new ECSComm(client, this);
-                    // Add new connection to the connections HashMap
-                    this.connections.put(client.getInetAddress().getHostAddress() + ":" + client.getPort(), connection);
                     logger.info("New connection registered with ECS");
                     new Thread(connection).start();
 
@@ -318,13 +320,11 @@ public class ECS implements IECS {
             broadcastMetadata();
             return;
         }
-        this.waitForSucc = true;
-        successor.retrieveData(metadata.get(successor.getIpAndPort()));
-        // while loop to wait for a TR_SUCC
-//        while (this.waitForSucc) {}
-//        // broadcast updated metadata
-//        logger.info("Broadcasting data");
-//        broadcastMetadata();
+
+        successor.retrieveData(metadata.get(successor.getClientListenerIpPort()));
+
+        logger.info("Broadcasting data");
+        broadcastMetadata();
     }
 
     public synchronized void removeServer(String ipAndPort) throws IOException {
@@ -334,7 +334,7 @@ public class ECS implements IECS {
             this.connections.get(ipAndPort).sendMessage(new KVMessage(IKVMessage.StatusType.LAST_ONE, "goodnight"));
             return;
         }
-        this.connections.get(ipAndPort).retrieveData(metadata.get(successor.getIpAndPort()));
+        this.connections.get(ipAndPort).retrieveData(metadata.get(successor.getClientListenerIpPort()));
 
     }
     public static void main(String[] args) {

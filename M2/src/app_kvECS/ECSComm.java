@@ -25,6 +25,7 @@ public class ECSComm implements Runnable {
 	private boolean isOpen;
 	private static final int BUFFER_SIZE = 1000;
 	private static final int DROP_SIZE = 129 * BUFFER_SIZE;
+	private String clientListenerIpPort;
 
 	private Socket clientSocket;
 	private InputStream input;
@@ -50,17 +51,11 @@ public class ECSComm implements Runnable {
 		try {
 			output = clientSocket.getOutputStream();
 			input = clientSocket.getInputStream();
-			ecs.addServer(this.getIpAndPort());
-//			// TODO: Call updateMetadataAdd to hash ip:port and update metadata
-//			ECSComm successorConnection = this.ecs.updateMetadataAdd(this.clientSocket.getInetAddress().getHostAddress() + ":" + this.clientSocket.getPort());
-//			// TODO: update metadata of new server
-//			if (successorConnection == null) {
-//				// TODO: send metadata update to new server only
-//			} else {
-//				// TODO: else tell successor node (via ECSComm?) to WRITE_LOCK and start copying data
-//				// TODO: wait for write success from new server after copying, then update metadata for all servers
-//				// TODO: release WRITE_LOCK on successor after updating metadata, then remove data items it is no longer responsible for (memoize during data transfer?)
-//			}
+
+			KVMessage servInitMessage = receiveMessage();
+			this.clientListenerIpPort = servInitMessage.getKey() + ":" + servInitMessage.getValue();
+			ecs.putConnection(this.clientListenerIpPort, this);
+			ecs.addServer(this.clientListenerIpPort);
 
 			while(isOpen) {
 				try {
@@ -117,7 +112,7 @@ public class ECSComm implements Runnable {
 					ecs.broadcastMetadata();
 					return null;
 				case SHUTDOWN:
-					ecs.removeServer(this.getIpAndPort());
+					ecs.removeServer(this.getClientListenerIpPort());
 					return null;
 				default:
 					return res = new KVMessage(IKVMessage.StatusType.FAILED, "Unknown request");
@@ -241,8 +236,8 @@ public class ECSComm implements Runnable {
 		sendMessage(new KVMessage(IKVMessage.StatusType.TR_INIT, data));
 	}
 
-	public String getIpAndPort() {
-		return clientSocket.getInetAddress().getHostAddress() + ":" + clientSocket.getPort();
+	public String getClientListenerIpPort() {
+		return this.clientListenerIpPort;
 	}
 
 	public static void main(String[] args) {

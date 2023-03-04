@@ -143,6 +143,11 @@ public class ECSListener implements Runnable {
         this.running = this.running && initializeListener();
         logger.info("Listener started on " + socket.getLocalPort());
         if (socket != null) {
+            try {
+                sendMessage(new KVMessage(IKVMessage.StatusType.SERV_INIT, kvServer.getHostname(), String.valueOf(kvServer.getPort())));
+            } catch (IOException e) {
+                logger.error("Could not communicate with ECS");
+            }
             while (this.running) {
                 try {
                     KVMessage latestMsg = receiveMessage();
@@ -163,8 +168,8 @@ public class ECSListener implements Runnable {
         return kvString.toString();
     }
 
-    public String getIpAndPort() {
-        return socket.getInetAddress().getHostAddress() + ":" + socket.getLocalPort();
+    public String getServerIpAndPort() {
+        return kvServer.getHostname() + ":" + kvServer.getPort();
     }
 
     public void handleMessage(KVMessage message) throws IOException {
@@ -206,7 +211,7 @@ public class ECSListener implements Runnable {
                 Boolean shutdown = false;
                 for (int i = 0; i < metadata.length; i++) {
                     String[] record = metadata[i].split(",");
-                    if ((socket.getInetAddress().getHostAddress() + ":" + socket.getLocalPort()).compareTo(record[2]) == 0) {
+                    if (this.getServerIpAndPort().compareTo(record[2]) == 0) {
                         kvServer.setRange(record[0], record[1]);
                         Boolean deleted = kvServer.removeRedundantData();
                         logger.info("Deletion status:" + deleted);
@@ -214,7 +219,7 @@ public class ECSListener implements Runnable {
                     metadataMap.put(record[2], record[0] + "," + record[1]);
                 }
                 kvServer.setMetadata(metadataMap);
-                if (!kvServer.inMetadata(getIpAndPort())) {
+                if (!kvServer.inMetadata(getServerIpAndPort())) {
                     kvServer.close();
                 } else {
                     kvServer.setStatus("ACTIVE");
