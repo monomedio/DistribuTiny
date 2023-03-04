@@ -75,7 +75,7 @@ public class Storage {
         File folder = new File(path);
         HashMap<String, String> map = new HashMap<String, String>();
         for (final File fileEntry : folder.listFiles()) {
-            if (fileEntry.isDirectory() || keyInRange(fileEntry.getName(), lowerRange, upperRange)) {
+            if (fileEntry.isDirectory() || !keyInRange(fileEntry.getName(), lowerRange, upperRange)) {
                 System.out.println("Ignoring directory");
             } else {
                 System.out.println(Files.readString(fileEntry.toPath()));
@@ -103,6 +103,7 @@ public class Storage {
             if (fileEntry.isDirectory() || keyInRange(fileEntry.getName(), lowerRange, upperRange)) {
                 System.out.println("Ignoring directory");
             } else {
+                System.out.println("Deleting " + fileEntry.getName());
                 deleted = deleted && fileEntry.delete();
             }
         }

@@ -51,6 +51,14 @@ public class ECSListener implements Runnable {
 
     }
 
+    public void shutdown() {
+        try {
+            sendMessage(new KVMessage(IKVMessage.StatusType.SHUTDOWN, "shutdown"));
+        } catch (IOException e) {
+            logger.error("Error occurred while trying to send a shutdown message to ECS");
+        }
+    }
+
     public void sendMessage(KVMessage msg) throws IOException {
         byte[] msgBytes = msg.getMessageBytes();
         logger.debug(Arrays.toString(msgBytes));
@@ -155,6 +163,10 @@ public class ECSListener implements Runnable {
         return kvString.toString();
     }
 
+    public String getIpAndPort() {
+        return socket.getInetAddress().getHostAddress() + ":" + socket.getLocalPort();
+    }
+
     public void handleMessage(KVMessage message) throws IOException {
         String data;
         switch (message.getStatus()) {
@@ -182,16 +194,16 @@ public class ECSListener implements Runnable {
                 }
                 if (kvServer.importData(keyVals)) {
                     sendMessage(new KVMessage(IKVMessage.StatusType.TR_SUCC, "success"));
-                    break;
                 } else {
                     logger.error("Couldn't store key-values at server");
                     sendMessage(new KVMessage(IKVMessage.StatusType.FAILED, "failed"));
-                    break;
                 }
+                break;
             case META_UPDATE:
                 data = message.getKey();
                 String[] metadata = data.split(";");
                 HashMap<String, String> metadataMap = new HashMap<>();
+                Boolean shutdown = false;
                 for (int i = 0; i < metadata.length; i++) {
                     String[] record = metadata[i].split(",");
                     if ((socket.getInetAddress().getHostAddress() + ":" + socket.getLocalPort()).compareTo(record[2]) == 0) {
@@ -202,24 +214,16 @@ public class ECSListener implements Runnable {
                     metadataMap.put(record[2], record[0] + "," + record[1]);
                 }
                 kvServer.setMetadata(metadataMap);
-                kvServer.setStatus("ACTIVE");
+                if (!kvServer.inMetadata(getIpAndPort())) {
+                    kvServer.close();
+                } else {
+                    kvServer.setStatus("ACTIVE");
+                }
+                break;
+            case LAST_ONE:
+                kvServer.close();
+
         }
 
-        // Message to assign key ranges
-        //kvServer.setRange();
-
-        // Message to get all data from server
-        // kvServer.exportData()
-
-        // Message to add data to Server
-        // kvServer.importData(map)
-
-        // Message to change status
-        // kvServer.setStatus(status)
-
-        // Message to update metadata
-        // kvServer.setMetadata(map)
-
-        // Message to shut down server
     }
 }

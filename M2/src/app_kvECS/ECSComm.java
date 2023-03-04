@@ -50,7 +50,7 @@ public class ECSComm implements Runnable {
 		try {
 			output = clientSocket.getOutputStream();
 			input = clientSocket.getInputStream();
-			ecs.addServer(this.clientSocket.getInetAddress().getHostAddress() + ":" + this.clientSocket.getPort());
+			ecs.addServer(this.getIpAndPort());
 //			// TODO: Call updateMetadataAdd to hash ip:port and update metadata
 //			ECSComm successorConnection = this.ecs.updateMetadataAdd(this.clientSocket.getInetAddress().getHostAddress() + ":" + this.clientSocket.getPort());
 //			// TODO: update metadata of new server
@@ -115,6 +115,9 @@ public class ECSComm implements Runnable {
 				case TR_SUCC:
 					//ecs.stopWaitForSucc();
 					ecs.broadcastMetadata();
+					return null;
+				case SHUTDOWN:
+					ecs.removeServer(this.getIpAndPort());
 					return null;
 				default:
 					return res = new KVMessage(IKVMessage.StatusType.FAILED, "Unknown request");

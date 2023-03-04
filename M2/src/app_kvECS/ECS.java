@@ -104,6 +104,29 @@ public class ECS implements IECS {
         return "No responsible server found";
     }
 
+    public ECSComm updateMetadataRemove(String ipAndPort) {
+        String[] myRange = this.metadata.get(ipAndPort).split(",");
+        String myFromHash = myRange[0];
+        String myToHash = myRange[1];
+        this.metadata.remove(ipAndPort);
+        String fromHash = "";
+        String toHash = "";
+        String entryIp = "";
+        for (Map.Entry<String, String> entry: this.metadata.entrySet()) {
+            String[] range = entry.getValue().split(",");
+            fromHash = range[0];
+            toHash = range[1];
+            entryIp = entry.getKey();
+            if (toHash.equals(myFromHash)) {
+                toHash = myToHash;
+                break;
+            }
+        }
+
+        this.metadata.replace(entryIp, fromHash + "," + toHash);
+        return this.connections.get(entryIp);
+    }
+
     /**
      * Hashes ipAndPort <ip:port> and updates metadata.
      * metadata entry:
@@ -302,6 +325,17 @@ public class ECS implements IECS {
 //        // broadcast updated metadata
 //        logger.info("Broadcasting data");
 //        broadcastMetadata();
+    }
+
+    public synchronized void removeServer(String ipAndPort) throws IOException {
+        ECSComm successor = updateMetadataRemove(ipAndPort);
+        if (successor == null) {
+            // Last server trying to shut down
+            this.connections.get(ipAndPort).sendMessage(new KVMessage(IKVMessage.StatusType.LAST_ONE, "goodnight"));
+            return;
+        }
+        this.connections.get(ipAndPort).retrieveData(metadata.get(successor.getIpAndPort()));
+
     }
     public static void main(String[] args) {
         String logDir = "server.log"; // default is curr directory

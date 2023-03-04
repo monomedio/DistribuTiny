@@ -42,6 +42,8 @@ public class KVServer implements IKVServer {
 
     private int ecsPort;
 
+    private ECSListener ecsListener;
+
     /**
      * Start KV Server at given port
      *
@@ -189,11 +191,14 @@ public class KVServer implements IKVServer {
         this.metadata = map;
     }
 
+    public boolean inMetadata(String ipAndPort) {
+        return this.metadata.containsKey(ipAndPort);
+    }
     @Override
     public void run() {
         running = initializeServer();
-        ECSListener listener = new ECSListener(this, ecsIp, ecsPort);
-        new Thread(listener).start();
+        this.ecsListener = new ECSListener(this, ecsIp, ecsPort);
+        new Thread(ecsListener).start();
         if (serverSocket != null) {
             while (this.running) {
                 try {
@@ -245,7 +250,13 @@ public class KVServer implements IKVServer {
             }
         } catch (IOException ioe) {
             logger.error("Error closing server", ioe);
+        } finally {
+            System.exit(0);
         }
+    }
+
+    public void initiateShutdown() {
+        this.ecsListener.shutdown();
     }
 
     // HELPERS
@@ -266,7 +277,6 @@ public class KVServer implements IKVServer {
         } else if(levelString.equals(Level.OFF.toString())) {
             return Level.OFF;
         } else {
-//            return LogSetup.UNKNOWN_LEVEL;
             return null;
         }
     }
@@ -302,19 +312,6 @@ public class KVServer implements IKVServer {
     }
 
     public static void main(String[] args) {
-//        String hashedKey = "0".repeat(31) + "e";
-//        String upperRange = "f".repeat(32);
-//        String lowerRange = "d".repeat(32);
-//        // if lowerRange is larger than upperRange
-//        if (lowerRange.compareTo(upperRange) > 0) {
-//            // hashedkey <= lowerRange and hasedkey > upperRange
-//            System.out.println(((hashedKey.compareTo(lowerRange) <= 0) && hashedKey.compareTo(upperRange) > 0));
-//        } else {
-//            System.out.println();
-//        }
-//        // lowerRange is smaller than upperRange (wrap around)
-//
-//    }
         try {
             // set variables to default
             boolean help = false;
@@ -385,10 +382,17 @@ public class KVServer implements IKVServer {
                 Level logLevel = getLevel(logLevelStr);
 
                 new LogSetup(logDir, logLevel);
+                final Thread mainThread = Thread.currentThread();
                 final KVServer kvServer = new KVServer(port, cSize, cStrat, stPath, addr, ecsAddr, ecsPort);
                 Runtime.getRuntime().addShutdownHook(new Thread() {
                     public void run() {
-                        kvServer.close();
+                        try{
+                            System.out.println("Waiting for data transfer");
+                            kvServer.initiateShutdown();
+                            mainThread.join();
+                        } catch(InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
                 });
                 kvServer.run();
@@ -398,8 +402,6 @@ public class KVServer implements IKVServer {
             e.printStackTrace();
             System.exit(1);
         } catch (NumberFormatException nfe) {
-//            System.out.println("Error! Invalid argument <port>! Not a number!");
-//            System.out.println("Usage: KVServer <port> <cache size> <cache strategy>");
             System.out.println("Error! Invalid arguments provided!");
             printHelp();
             System.exit(1);
