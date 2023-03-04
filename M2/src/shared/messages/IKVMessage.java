@@ -21,7 +21,8 @@ public interface IKVMessage {
 		TR_RES, /* Transfer data response */
 		TR_INIT, /* Initialize writing data into new server */
 		TR_SUCC, /* Successfully written data into new server*/
-		META_UPDATE /* Update metadata */
+		META_UPDATE, /* Update metadata */
+		SERV_INIT /* Message from initializing server containing its client listener IP and port as key and value respectively */
 	}
 
 	/**
