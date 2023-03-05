@@ -1,5 +1,6 @@
 package testing;
 
+import junit.framework.TestCase;
 import org.junit.Test;
 
 import java.util.*;
@@ -11,9 +12,10 @@ public class MetadataAddTest {
             String hash, String ipAndPort, HashMap<String, String> metadata, HashMap<String, String> connections){
         String successor = null;
 
+
         if (metadata.isEmpty()) {
             metadata.put(ipAndPort, hash + "," + hash);
-            System.out.println("bruh");
+            //return null;
         } else {
             // Key whose lowerRange is the smallest
             String minKey = null;
@@ -50,8 +52,6 @@ public class MetadataAddTest {
                 String minUpper = minLowerUpper[1];
                 metadata.put(minKey, minLower + "," + hash);
                 metadata.put(ipAndPort, hash + "," + minUpper);
-                System.out.println("Succeeded by minKey");
-                System.out.println(connections.get(minKey));
                 successor = connections.get(minKey);
             } else { // targetKey is successor
                 String[] targetLowerUpper = metadata.get(targetKey).split(",");
@@ -59,22 +59,20 @@ public class MetadataAddTest {
                 String targetUpper = targetLowerUpper[1];
                 metadata.put(targetKey, targetLower + "," + hash);
                 metadata.put(ipAndPort, hash + "," + targetUpper);
-                System.out.println("Succeeded by targetKey");
-                System.out.println(connections.get(targetKey));
                 successor = connections.get(targetKey);
             }
+
 
         }
 
         List<Object> result = new ArrayList<>();
         result.add(metadata);
         result.add(successor);
-
         return result;
     }
 
     @Test
-    public void meta() {
+    public void no_server_add_one(){
         // Case 1: no servers currently, add one (range should cover everything)
         String ipAndPort1 = "127.0.0.1:1";
         String hash1 = "8".repeat(32);
@@ -88,9 +86,14 @@ public class MetadataAddTest {
 
         List<Object> result1 = updateMetadataAdd(hash1, ipAndPort1, metadata1, connections1);
 
+        //assert(result1 == null);
+
         assert(result1.get(0).equals(metadata1Result)); // metadata check
         assert(result1.get(1) == null); // successor check
+    }
 
+    @Test
+    public void one_server_add_less_serv1(){
         // Case 2: one server currently, add one < server1 (server1 upper should == server2 lower and vice versa)
         String ipAndPort2 = "127.0.0.1:2";
         String hash2 = "80e7bcff701a97e48834556f72689200";
@@ -111,7 +114,10 @@ public class MetadataAddTest {
 
         assert(result2.get(0).equals(metadata2Result)); // metadata check
         assert(result2.get(1) == "ECSComm 127.0.0.1:1"); // successor check
+    }
 
+    @Test
+    public void one_server_add_greater_serv1(){
         //Case 3: one server currently, add one > server1 (server1 upper should == server2 lower and vice versa)
         String ipAndPort3 = "127.0.0.1:2";
         String hash3 = "80e7bcff701a97e48834556f72689200";
@@ -132,8 +138,10 @@ public class MetadataAddTest {
 
         assert(result3.get(0).equals(metadata3Result)); // metadata check
         assert(result3.get(1) == "ECSComm 127.0.0.1:1"); // successor check
+    }
 
-
+    @Test
+    public void two_servers_add_w_serv1_succ(){
         // Case 4: two servers currently, add one with serv1 as successor, serv2 range stays the same
         String ipAndPort4 = "127.0.0.1:3";
         String hash4 = "80e7bcff701a97e48834556f72689200";
@@ -161,7 +169,10 @@ public class MetadataAddTest {
         assert(result4.get(0).equals(metadata4Result)); // metadata check
         assert(result4.get(1) == "ECSComm 127.0.0.1:1"); // successor check
 
+    }
 
+    @Test
+    public void two_servers_add_new_across_wraparound(){
         // Case 5: two servers currently, add one with serv1 as successor, serv2 range stays the same
         // new server at f*32 so successor crosses the wrap around
         String ipAndPort5 = "127.0.0.1:3";
@@ -189,8 +200,10 @@ public class MetadataAddTest {
 
         assert(result5.get(0).equals(metadata5Result)); // metadata check
         assert(result5.get(1) == "ECSComm 127.0.0.1:1"); // successor check
+    }
 
-
+    @Test
+    public void three_serves_add_one(){
         // Case 6: three servers currently, add one
         String ipAndPort6 = "127.0.0.1:4";
         String hash6 = "b".repeat(32);
@@ -203,7 +216,7 @@ public class MetadataAddTest {
         String hash6_3 = "f".repeat(32);
 
         metadata6.put("127.0.0.1:1", hash6_1 + "," + hash6_3);
-        connections5.put("127.0.0.1:1", "ECSComm 127.0.0.1:1");
+        connections6.put("127.0.0.1:1", "ECSComm 127.0.0.1:1");
 
         metadata6.put("127.0.0.1:2", hash6_2 + "," + hash6_1);
         connections6.put("127.0.0.1:2", "ECSComm 127.0.0.1:2");
@@ -222,7 +235,6 @@ public class MetadataAddTest {
 
         assert(result6.get(0).equals(metadata6Result)); // metadata check
         assert(result6.get(1) == "ECSComm 127.0.0.1:3"); // successor check
-
     }
 
 }
