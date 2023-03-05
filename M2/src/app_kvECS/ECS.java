@@ -59,9 +59,13 @@ public class ECS implements IECS {
     public void broadcastMetadata() throws IOException {
         // construct message that will be sent to each server
         String res = metadataToString();
+        System.out.println(res);
         // send to metadata to each server
         for (Map.Entry<String, ECSComm> entry : this.connections.entrySet()) {
             entry.getValue().sendMessage(new KVMessage(IKVMessage.StatusType.META_UPDATE, res));
+            if (!this.metadata.containsKey(entry.getKey())) {
+                this.connections.remove(entry.getKey());
+            }
         }
     }
 
@@ -253,12 +257,13 @@ public class ECS implements IECS {
      * @return "<ip>:<port>" string of the responsible server
      */
     public String findResponsibleServer(String sampleKey) {
-        sampleKey = DigestUtils.md5Hex(sampleKey);
+        System.out.println("Sample key: " + sampleKey + ". Metadata: " + metadataToString());
         for (Map.Entry<String, String> entry: this.metadata.entrySet()) {
             String[] lowerUpper = entry.getValue().split(",");
             String lower = lowerUpper[0];
             String upper = lowerUpper[1];
             if (keyInRange(sampleKey, lower, upper)) {
+                System.out.println("Found responsible server: " + entry.getKey());
                 return entry.getKey();
             }
         }
