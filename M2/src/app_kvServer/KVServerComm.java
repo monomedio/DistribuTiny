@@ -120,7 +120,7 @@ public class KVServerComm implements Runnable {
 		return res;
 
 	}
-	private KVMessage handleMessage(KVMessage msg){
+	private KVMessage handleMessage(KVMessage msg) throws IOException {
 		KVMessage res;
 		if (kvServer.isStopped()) {
 			return res = new KVMessage(IKVMessage.StatusType.SERVER_STOPPED, "error");
@@ -138,7 +138,7 @@ public class KVServerComm implements Runnable {
 		// TODO: send metadata to client when SERVER_NOT_RESPONSIBLE
 		if (!kvServer.keyInRange(msg.getKey())) {
 			logger.info("KVServer not responsible for this key:" + msg.getKey());
-			return res = new KVMessage(IKVMessage.StatusType.SERVER_NOT_RESPONSIBLE, "error");
+			return res = new KVMessage(IKVMessage.StatusType.SERVER_NOT_RESPONSIBLE, "failed");
 		}
 		try{
 			switch (msg.getStatus()) {
@@ -155,8 +155,8 @@ public class KVServerComm implements Runnable {
 					return res;
 				case PUT:
 					return handlePUTMessage(msg);
-				case KEYRANGE_SUCCESS:
-					return res = new KVMessage(IKVMessage.StatusType.KEYRANGE_SUCCESS, "null", kvServer.metadataToString());
+				case KEYRANGE:
+					return res = new KVMessage(IKVMessage.StatusType.KEYRANGE_SUCCESS, kvServer.metadataToString());
 				default:
 					return res = new KVMessage(IKVMessage.StatusType.FAILED, "Unknown request");
 				}

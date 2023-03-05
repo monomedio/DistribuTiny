@@ -24,7 +24,8 @@ public interface IKVMessage {
 		META_UPDATE, /* Update metadata */
 		SHUTDOWN, /*Sent by ECSListener when KVServer shuts down*/
 		LAST_ONE, /*Sent by ECS to listener when the server requesting shutdown is the last one*/
-		SERV_INIT /* Message from initializing server containing its client listener IP and port as key and value respectively */
+		SERV_INIT, /* Message from initializing server containing its client listener IP and port as key and value respectively */
+		KEYRANGE  /*Sent by client to request updated metadata from a KVServer*/
 	}
 
 	/**
