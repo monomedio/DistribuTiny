@@ -209,6 +209,29 @@ public class KVServer implements IKVServer {
     public boolean inMetadata(String ipAndPort) {
         return this.metadata.containsKey(ipAndPort);
     }
+
+
+    /**
+     * Stringify the metadata HashMap
+     *
+     * @return a String in the format of "<kr-from>,<kr-to>,<ip:port>; <kr-from>,<kr-to>,<ip:port>;" for example,
+     * assuming there are only two nodes recorded the metadata
+     */
+    public String metadataToString() {
+        if (this.metadata.isEmpty()) {
+            return "EMPTY";
+        }
+        StringBuilder res = new StringBuilder();
+        for (Map.Entry<String, String> entry : this.metadata.entrySet()) {
+            res.append(entry.getValue());
+            res.append(", ");
+            res.append(entry.getKey());
+            res.append(";");
+        }
+        res.deleteCharAt(res.length() - 1);
+        return res.toString();
+    }
+
     @Override
     public void run() {
         running = initializeServer();

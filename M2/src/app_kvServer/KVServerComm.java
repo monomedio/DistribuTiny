@@ -155,6 +155,8 @@ public class KVServerComm implements Runnable {
 					return res;
 				case PUT:
 					return handlePUTMessage(msg);
+				case KEYRANGE_SUCCESS:
+					return res = new KVMessage(IKVMessage.StatusType.KEYRANGE_SUCCESS, "null", kvServer.metadataToString());
 				default:
 					return res = new KVMessage(IKVMessage.StatusType.FAILED, "Unknown request");
 				}
