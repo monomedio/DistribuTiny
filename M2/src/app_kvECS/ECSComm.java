@@ -124,7 +124,8 @@ public class ECSComm implements Runnable {
 					return res = new KVMessage(IKVMessage.StatusType.FAILED, "Unknown request");
 				}
 		} catch (Exception e) {
-			logger.debug(e.getMessage());
+			logger.debug(e);
+			e.printStackTrace();
 			return res = new KVMessage(IKVMessage.StatusType.FAILED, "An IO-error occurred at the server");
 		}
 
@@ -202,6 +203,9 @@ public class ECSComm implements Runnable {
 		msgBytes = tmp;
 		logger.info(Arrays.toString(msgBytes));
 		KVMessage msg;
+		if (msgBytes.length == 0) {
+			isOpen = false;
+		}
 		/* build final String */
 		try {
 			msg = new KVMessage(msgBytes);

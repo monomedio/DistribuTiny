@@ -60,12 +60,16 @@ public class ECS implements IECS {
         // construct message that will be sent to each server
         String res = metadataToString();
         System.out.println(res);
+        ArrayList<String> connectionsToDelete = new ArrayList<>();
         // send to metadata to each server
         for (Map.Entry<String, ECSComm> entry : this.connections.entrySet()) {
             entry.getValue().sendMessage(new KVMessage(IKVMessage.StatusType.META_UPDATE, res));
             if (!this.metadata.containsKey(entry.getKey())) {
-                this.connections.remove(entry.getKey());
+                connectionsToDelete.add(entry.getKey());
             }
+        }
+        for (String conn : connectionsToDelete) {
+            this.connections.remove(conn);
         }
     }
 
