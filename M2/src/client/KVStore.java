@@ -126,7 +126,7 @@ public class KVStore implements KVCommInterface {
 		if (message.getStatus() == IKVMessage.StatusType.SERVER_NOT_RESPONSIBLE) // Currently connected server is not responsible
 		{
 			// Send KEYRANGE request for metadata
-			sendMessage(new KVMessage(IKVMessage.StatusType.KEYRANGE, "null"));
+			sendMessage(new KVMessage(IKVMessage.StatusType.KEYRANGE));
 			IKVMessage metaMessage = receiveMessage();
 			// REPLACE METADATA AND RETRY
 			HashMap<String, String> newHashMap = new HashMap<>();
@@ -207,7 +207,7 @@ public class KVStore implements KVCommInterface {
 		if (message.getStatus() == IKVMessage.StatusType.SERVER_NOT_RESPONSIBLE) // Currently connected server is not responsible
 		{
 			// Send KEYRANGE request for metadata
-			sendMessage(new KVMessage(IKVMessage.StatusType.KEYRANGE, "null"));
+			sendMessage(new KVMessage(IKVMessage.StatusType.KEYRANGE));
 			IKVMessage metaMessage = receiveMessage();
 			// REPLACE METADATA AND RETRY
 			HashMap<String, String> newHashMap = new HashMap<>();
@@ -249,7 +249,7 @@ public class KVStore implements KVCommInterface {
 	}
 
 	public IKVMessage keyRange() throws Exception {
-		IKVMessage message = new KVMessage(IKVMessage.StatusType.KEYRANGE, "null");
+		IKVMessage message = new KVMessage(IKVMessage.StatusType.KEYRANGE);
 
 		sendMessage(message); // Send keyrange message to the currently connected server
 

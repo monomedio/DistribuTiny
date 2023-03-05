@@ -49,12 +49,24 @@ public class KVMessage implements IKVMessage {
         this.messageBytes = tmp;
 
         String[] argsArray = messageBytesToArgsArray(messageBytes);
+        if (argsArray[0].substring(argsArray[0].length() - 2).compareTo("\r\n") == 0) {
+            argsArray[0] = argsArray[0].substring(0, argsArray[0].length() - 2);
+        }
         this.status = StatusType.valueOf(argsArray[0]);
-        this.key = argsArray[1];
+
+        if (argsArray.length == 2) {
+            this.key = argsArray[1];
+        }
 
         if (argsArray.length == 3) {
+            this.key = argsArray[1];
             this.value = argsArray[2];
         }
+    }
+
+    public KVMessage(StatusType status) {
+        this.status = status;
+        this.messageBytes = toByteArray(status.toString());
     }
 
     @Override
