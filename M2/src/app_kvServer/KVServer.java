@@ -224,7 +224,7 @@ public class KVServer implements IKVServer {
         StringBuilder res = new StringBuilder();
         for (Map.Entry<String, String> entry : this.metadata.entrySet()) {
             res.append(entry.getValue());
-            res.append(", ");
+            res.append(",");
             res.append(entry.getKey());
             res.append(";");
         }

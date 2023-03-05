@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.UnknownHostException;
+import java.util.HashMap;
 
 import client.KVStore;
 import jdk.jshell.Snippet;
@@ -112,7 +113,9 @@ public class KVClient implements IKVClient {
                     try {
                         IKVMessage message = kvStore.put(tokens[1], tokens[2]);
                         IKVMessage.StatusType status = message.getStatus();
-                        if (status == IKVMessage.StatusType.PUT_ERROR || status == IKVMessage.StatusType.DELETE_ERROR || status == IKVMessage.StatusType.FAILED) {
+                        if (status == IKVMessage.StatusType.PUT_ERROR || status == IKVMessage.StatusType.DELETE_ERROR ||
+                                status == IKVMessage.StatusType.FAILED || status == IKVMessage.StatusType.SERVER_WRITE_LOCK ||
+                                status == IKVMessage.StatusType.SERVER_STOPPED) {
                             printError(message.getMessage());
                         } else {
                             System.out.println(message.getMessage());
@@ -120,7 +123,7 @@ public class KVClient implements IKVClient {
                     } catch (Exception e) {
                         this.kvStore = null;
                         printError("Could not complete PUT request due to I/O error. Disconnecting...");
-                        logger.warn("Could not complete PUT request due to I/O error. Disconnecting...", e);
+                        logger.warn("Could not complete PUT request due to I/O error. Disconnecting...");
                     }
                 } else if (tokens.length != 3) {
                     printError("Invalid number of arguments");
@@ -133,7 +136,8 @@ public class KVClient implements IKVClient {
                     try {
                         IKVMessage message = kvStore.get(tokens[1]);
                         IKVMessage.StatusType status = message.getStatus();
-                        if (status == IKVMessage.StatusType.FAILED || status == IKVMessage.StatusType.GET_ERROR) {
+                        if (status == IKVMessage.StatusType.FAILED || status == IKVMessage.StatusType.GET_ERROR ||
+                                status == IKVMessage.StatusType.SERVER_STOPPED) {
                             printError(message.getMessage());
                         } else {
                             System.out.println(message.getMessage());
@@ -141,10 +145,31 @@ public class KVClient implements IKVClient {
                     } catch (Exception e) {
                         this.kvStore = null;
                         printError("Could not complete GET request due to I/O error. Disconnecting...");
-                        logger.warn("Could not complete GET request due to I/O error. Disconnecting...", e);
+                        logger.warn("Could not complete GET request due to I/O error. Disconnecting...");
                     }
                 } else if (tokens.length != 2) {
                     printError("Invalid number of arguments.");
+                } else {
+                    printError("Not connected to a server.");
+                }
+                break;
+            case "keyrange":
+                if (tokens.length == 1 && this.kvStore != null) {
+                    try {
+                        IKVMessage message = kvStore.keyRange();
+                        IKVMessage.StatusType status = message.getStatus();
+                        if (status == IKVMessage.StatusType.SERVER_STOPPED || status == IKVMessage.StatusType.FAILED) {
+                            printError(message.getMessage());
+                        } else {
+                            System.out.println(message.getMessage());
+                        }
+                    } catch (Exception e) {
+                        this.kvStore = null;
+                        printError("Could not complete KEYRANGE request due to I/O error. Disconnecting...");
+                        logger.warn("Could not complete KEYRANGE request due to I/O error. Disconnecting...");
+                    }
+                } else if (tokens.length != 1) {
+                    printError("Too many arguments given. 0 expected.");
                 } else {
                     printError("Not connected to a server.");
                 }
