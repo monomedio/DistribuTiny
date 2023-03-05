@@ -230,7 +230,6 @@ public class KVStore implements KVCommInterface {
 		try {
 			return keyRange();
 		} catch (Exception e) { // Server is offline
-			System.out.println("START FOR LOOP");
 			for (Map.Entry<String, String> entry : this.metadata.entrySet()) { // Try every server that client knows
 				disconnect();
 				this.address = entry.getKey().split(":")[0];
@@ -240,7 +239,6 @@ public class KVStore implements KVCommInterface {
 					connect();
 					System.out.println("Connected to: " + entry.getKey());
 					IKVMessage message = keyRange();
-					System.out.println("Got message from:" + entry.getKey() + ":" + message.getMessage());
 					return message;
 				} catch (Exception f) { // Server is offline
 					continue;
@@ -304,7 +302,6 @@ public class KVStore implements KVCommInterface {
 			String lower = lowerUpper[0];
 			String upper = lowerUpper[1];
 			if (keyInRange(sampleKey, lower, upper)) {
-				System.out.println("Found responsible server: " + entry.getKey());
 				return entry.getKey();
 			}
 		}

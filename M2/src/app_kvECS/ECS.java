@@ -268,7 +268,6 @@ public class ECS implements IECS {
             String lower = lowerUpper[0];
             String upper = lowerUpper[1];
             if (keyInRange(sampleKey, lower, upper)) {
-                System.out.println("Found responsible server: " + entry.getKey());
                 return entry.getKey();
             }
         }
