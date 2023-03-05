@@ -213,10 +213,9 @@ public class ECSListener implements Runnable {
 //                Boolean shutdown = false;
                 for (int i = 0; i < metadata.length; i++) {
                     String[] record = metadata[i].split(",");
-                    if (this.getServerIpAndPort().compareTo(record[2]) == 0) {
+                    if (this.getServerIpAndPort().compareTo(record[2]) == 0 && this.kvServer.isWriteLocked()) {
                         kvServer.setRange(record[0], record[1]);
                         Boolean deleted = kvServer.removeRedundantData();
-                        logger.info("Deletion status:" + deleted);
                     }
                     metadataMap.put(record[2], record[0] + "," + record[1]);
                 }
@@ -226,7 +225,7 @@ public class ECSListener implements Runnable {
                     this.running = false;
                     this.socket.close();
                     kvServer.close();
-                } else {
+                } else if(kvServer.isWriteLocked() || kvServer.isStopped()){
                     kvServer.setStatus("ACTIVE");
                 }
                 break;

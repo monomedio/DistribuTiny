@@ -63,7 +63,7 @@ public class KVServer implements IKVServer {
      *
      */
     public KVServer(int port, int cacheSize, String strategy, String path, InetAddress address, InetAddress ecsIp, int ecsPort) {
-        this.status = "ACTIVE";
+        this.status = "STOPPED";
         this.port = port;
         this.cacheSize = cacheSize;
         this.cacheStrategy = CacheStrategy.valueOf(strategy);
@@ -228,7 +228,7 @@ public class KVServer implements IKVServer {
                             + " on port " + client.getPort());
                 } catch (IOException e) {
                     logger.error("Error! " +
-                            "Unable to establish connection. \n", e);
+                            "Unable to establish connection. \n");
                 }
             }
         }
@@ -268,6 +268,7 @@ public class KVServer implements IKVServer {
         } catch (IOException ioe) {
             logger.error("Error closing server", ioe);
         }
+        System.exit(0);
     }
 
     public void initiateShutdown() {

@@ -243,6 +243,7 @@ public class ECS implements IECS {
         if (successor == null) {
             // Last server trying to shut down
             this.connections.get(ipAndPort).sendMessage(new KVMessage(IKVMessage.StatusType.LAST_ONE, "goodnight"));
+            this.connections.remove(ipAndPort);
             return;
         }
         successor.sendData(data);
