@@ -13,7 +13,7 @@ public class FIFOCache implements Cache{
 
     public FIFOCache(int cacheSize) {
         this.cacheSize = cacheSize;
-        this.cache = LinkedHashMap.newLinkedHashMap(cacheSize);
+//        this.cache = LinkedHashMap.newLinkedHashMap(cacheSize);
     }
     @Override
     public boolean inCache(String key) {
@@ -42,7 +42,7 @@ public class FIFOCache implements Cache{
 
     @Override
     public void clear() {
-        this.cache = LinkedHashMap.newLinkedHashMap(cacheSize);
+//        this.cache = LinkedHashMap.newLinkedHashMap(cacheSize);
     }
 
     @Override

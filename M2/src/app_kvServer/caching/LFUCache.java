@@ -11,7 +11,7 @@ public class LFUCache implements Cache{
 
     public LFUCache(int cacheSize) {
         this.cacheSize = cacheSize;
-        this.cache = HashMap.newHashMap(cacheSize);
+//        this.cache = HashMap.newHashMap(cacheSize);
     }
     @Override
     public boolean inCache(String key) {
