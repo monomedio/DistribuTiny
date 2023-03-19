@@ -134,22 +134,22 @@ public class ECS implements IECS {
 
             for (Map.Entry<String, String> entry : this.metadata.entrySet()) {
                 String entryKey = entry.getKey();
-                String entryLower = entry.getValue().split(",")[0];
+                String entryUpper = entry.getValue().split(",")[1];
 
                 // minKey computation
                 if (minKey == null) {
                     minKey = entryKey;
-                } else if (this.metadata.get(minKey).split(",")[0].compareTo(entryLower) > 0) { // if minKey's lowerRange is larger than entryLower
+                } else if (this.metadata.get(minKey).split(",")[0].compareTo(entryUpper) > 0) { // if minKey's lowerRange is larger than entryUpper
                     minKey = entryKey;
                 }
 
                 // targetKey computation
                 if ((targetKey == null)) {
-                    if (hash.compareTo(entryLower) < 0) {
+                    if (hash.compareTo(entryUpper) < 0) {
                         targetKey = entryKey;
                     }
                 } else {
-                    if ((this.metadata.get(targetKey).split(",")[0].compareTo(entryLower) > 0) && (hash.compareTo(entryLower) < 0)) {
+                    if ((this.metadata.get(targetKey).split(",")[0].compareTo(entryUpper) > 0) && (hash.compareTo(entryUpper) < 0)) {
                         targetKey = entryKey;
                     }
                 }
@@ -160,15 +160,15 @@ public class ECS implements IECS {
                 String[] minLowerUpper = this.metadata.get(minKey).split(",");
                 String minLower = minLowerUpper[0];
                 String minUpper = minLowerUpper[1];
-                this.metadata.put(minKey, minLower + "," + hash);
-                this.metadata.put(ipAndPort, hash + "," + minUpper);
+                this.metadata.put(minKey, hash + "," + minUpper);
+                this.metadata.put(ipAndPort, minLower + "," + hash);
                 return getECSComm(minKey);
             } else { // targetKey is successor
                 String[] targetLowerUpper = this.metadata.get(targetKey).split(",");
                 String targetLower = targetLowerUpper[0];
                 String targetUpper = targetLowerUpper[1];
-                this.metadata.put(targetKey, targetLower + "," + hash);
-                this.metadata.put(ipAndPort, hash + "," + targetUpper);
+                this.metadata.put(targetKey, hash + "," + targetUpper);
+                this.metadata.put(ipAndPort, targetLower + "," + hash);
                 return getECSComm(targetKey);
             }
 
