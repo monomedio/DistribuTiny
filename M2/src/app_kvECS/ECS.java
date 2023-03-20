@@ -92,16 +92,16 @@ public class ECS implements IECS {
 
     public ECSComm updateMetadataRemove(String ipAndPort) {
         String[] myRange = this.metadata.get(ipAndPort).split(",");
-        String myFromHash = myRange[0];
-        String myToHash = myRange[1];
+        String myToHash = myRange[0];
+        String myFromHash = myRange[1];
         this.metadata.remove(ipAndPort);
         String fromHash = "";
         String toHash = "";
         String entryIp = "";
         for (Map.Entry<String, String> entry: this.metadata.entrySet()) {
             String[] range = entry.getValue().split(",");
-            fromHash = range[0];
-            toHash = range[1];
+            toHash = range[0];
+            fromHash = range[1];
             entryIp = entry.getKey();
             if (toHash.equals(myFromHash)) {
                 toHash = myToHash;
@@ -109,7 +109,7 @@ public class ECS implements IECS {
             }
         }
 
-        this.metadata.replace(entryIp, fromHash + "," + toHash);
+        this.metadata.replace(entryIp, toHash + "," + fromHash);
         return this.connections.get(entryIp);
     }
 
