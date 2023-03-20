@@ -7,6 +7,8 @@ import logger.LogSetup;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import shared.messages.IKVMessage;
+import shared.messages.KVMessage;
 
 import java.io.IOException;
 import java.net.BindException;
@@ -48,6 +50,7 @@ public class KVServer implements IKVServer {
 
     private Cache cache;
 
+    private InternalStore internalStore;
     /**
      * Start KV Server at given port
      *
@@ -71,6 +74,7 @@ public class KVServer implements IKVServer {
         this.address = address;
         this.ecsIp = ecsIp;
         this.ecsPort = ecsPort;
+        this.internalStore = new InternalStore(getHostname(), port);
         switch (this.cacheStrategy) {
             case LFU:
                 this.cache = new LFUCache(this.cacheSize);
@@ -126,7 +130,16 @@ public class KVServer implements IKVServer {
     }
 
     @Override
-    public synchronized void putKV(String key, String value) throws Exception {
+    public synchronized void putKV(String key, String value, boolean replicate) throws Exception {
+//        if (replicate) {
+//            internalStore.connect();
+//            internalStore.put();
+//            internalStore.receiveMessage();
+//            internalStore.disconnect();
+//            internalStore.connect();
+//            internalStore.put();
+//            internalStore.receiveMessage();
+//        }
         if (!store.put(key, value)) {
             throw new Exception("PUT_ERROR");
         }

@@ -153,6 +153,10 @@ public class ECSListener implements Runnable {
                 try {
                     KVMessage latestMsg = receiveMessage();
                     handleMessage(latestMsg);
+                    if (latestMsg.getStatus() == IKVMessage.StatusType.FAILED) {
+                        this.running = false;
+                        kvServer.close();
+                    }
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }

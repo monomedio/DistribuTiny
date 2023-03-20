@@ -87,6 +87,39 @@ public class KVServerComm implements Runnable {
 			}
 		}
 	}
+	private KVMessage handlePUT_RMessage(KVMessage msg) throws Exception {
+
+//		if (kvServer.isWriteLocked()) {
+//			logger.info("Server is currently write locked");
+//			return new KVMessage(IKVMessage.StatusType.SERVER_WRITE_LOCK, "error");
+//		}
+		boolean keyExists = kvServer.inCache(msg.getKey()) || kvServer.inStorage(msg.getKey());
+		if (!keyExists && msg.getValue().equals("null")) {
+			logger.debug("Trying to DELETE for non-existent replica:" + msg.getKey());
+			return new KVMessage(IKVMessage.StatusType.DELETE_ERROR, msg.getKey());
+		}
+		boolean validDeletion = keyExists && (Objects.equals(msg.getValue(), "null"));
+		KVMessage res;
+		if (validDeletion) {
+			logger.debug("Trying to DELETE for replica:" + msg.getKey());
+			kvServer.deleteKV(msg.getKey());
+			return new KVMessage(KVMessage.StatusType.DELETE_SUCCESS, msg.getKey());
+		}
+
+		if (!keyExists) {
+			logger.debug("Trying to PUT replica: " + msg.getKey() + " with value: " + msg.getValue());
+			kvServer.putKV(msg.getKey(), msg.getValue(), false);
+			return new KVMessage(KVMessage.StatusType.PUT_SUCCESS,
+					msg.getKey(), msg.getValue());
+		}
+
+		logger.debug("Trying to PUT_UPDATE for replica: " + msg.getKey() + " with value: " + msg.getValue());
+		kvServer.putKV(msg.getKey(), msg.getValue(), false);
+		res = new KVMessage(KVMessage.StatusType.PUT_UPDATE,
+				msg.getKey(), msg.getValue());
+		return res;
+
+	}
 	private KVMessage handlePUTMessage(KVMessage msg) throws Exception {
 
 		if (kvServer.isWriteLocked()) {
@@ -108,13 +141,13 @@ public class KVServerComm implements Runnable {
 
 		if (!keyExists) {
 			logger.debug("Trying to PUT key: " + msg.getKey() + " with value: " + msg.getValue());
-			kvServer.putKV(msg.getKey(), msg.getValue());
+			kvServer.putKV(msg.getKey(), msg.getValue(), false);
 			return new KVMessage(KVMessage.StatusType.PUT_SUCCESS,
 					msg.getKey(), msg.getValue());
 		}
 
 		logger.debug("Trying to PUT_UPDATE for key: " + msg.getKey() + " with value: " + msg.getValue());
-		kvServer.putKV(msg.getKey(), msg.getValue());
+		kvServer.putKV(msg.getKey(), msg.getValue(), false);
 		res = new KVMessage(KVMessage.StatusType.PUT_UPDATE,
 				msg.getKey(), msg.getValue());
 		return res;

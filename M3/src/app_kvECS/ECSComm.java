@@ -64,7 +64,7 @@ public class ECSComm implements Runnable {
 					KVMessage handledMessage = handleMessage(latestMsg);
 					// TODO: change info to debug
 					logger.info("Metadata after message handling: " + ecs.metadataToString());
-					if (handledMessage != null) {
+					if (handledMessage != null && !handledMessage.getStatus().equals(IKVMessage.StatusType.FAILED)) {
 						sendMessage(handledMessage);
 					}
 				/* connection either terminated by the client or lost due to 
