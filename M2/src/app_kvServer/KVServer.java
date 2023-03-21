@@ -34,9 +34,9 @@ public class KVServer implements IKVServer {
 
     private InetAddress address;
 
-    private String lowerRange; //inclusive
+    private String lowerRange; //exclusive
 
-    private String upperRange; //exclusive
+    private String upperRange; //inclusive
 
     private HashMap<String, String> metadata;
 

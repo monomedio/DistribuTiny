@@ -73,19 +73,6 @@ public class ECS implements IECS {
         }
     }
 
-    /**
-     * Sends metadata to a specified server
-     * @param ipAndPort string "<ip>:<port>" of the server you want metadata to be sent to
-     * @throws IOException
-     */
-    public void sendMetadata(String ipAndPort) throws IOException {
-        // turn metadata into message, then get ECSComm for ipAndPort and send META_UPDATE
-        String metadataString = metadataToString();
-        ECSComm targetComm = getECSComm(ipAndPort);
-        KVMessage message = new KVMessage(IKVMessage.StatusType.META_UPDATE, "null", metadataString);
-        targetComm.sendMessage(message);
-    }
-
     public ECSComm getECSComm(String key) {
         return this.connections.get(key);
     }
@@ -122,9 +109,8 @@ public class ECS implements IECS {
     */
     public ECSComm updateMetadataAdd(String ipAndPort) {
         String hash = DigestUtils.md5Hex(ipAndPort);
-        if (this.metadata.isEmpty()) {
-            this.metadata.put(ipAndPort, hash + "," + hash);
-            logger.info("Successfully added server: " + ipAndPort + " to empty ring");
+        if (metadata.isEmpty()) {
+            metadata.put(ipAndPort, hash + "," + hash);
             return null;
         } else {
             // Key whose lowerRange is the smallest
@@ -132,14 +118,14 @@ public class ECS implements IECS {
             // Key whose lowerRange is the smallest that is larger than hash
             String targetKey = null;
 
-            for (Map.Entry<String, String> entry : this.metadata.entrySet()) {
+            for (Map.Entry<String, String> entry : metadata.entrySet()) {
                 String entryKey = entry.getKey();
                 String entryUpper = entry.getValue().split(",")[1];
 
                 // minKey computation
                 if (minKey == null) {
                     minKey = entryKey;
-                } else if (this.metadata.get(minKey).split(",")[0].compareTo(entryUpper) > 0) { // if minKey's lowerRange is larger than entryUpper
+                } else if (metadata.get(minKey).split(",")[1].compareTo(entryUpper) > 0) { // if minKey's lowerRange is larger than entryUpper
                     minKey = entryKey;
                 }
 
@@ -149,7 +135,7 @@ public class ECS implements IECS {
                         targetKey = entryKey;
                     }
                 } else {
-                    if ((this.metadata.get(targetKey).split(",")[0].compareTo(entryUpper) > 0) && (hash.compareTo(entryUpper) < 0)) {
+                    if ((metadata.get(targetKey).split(",")[1].compareTo(entryUpper) > 0) && (hash.compareTo(entryUpper) < 0)) {
                         targetKey = entryKey;
                     }
                 }
@@ -157,21 +143,20 @@ public class ECS implements IECS {
 
             // minKey will be its successor
             if (targetKey == null) {
-                String[] minLowerUpper = this.metadata.get(minKey).split(",");
+                String[] minLowerUpper = metadata.get(minKey).split(",");
                 String minLower = minLowerUpper[0];
                 String minUpper = minLowerUpper[1];
-                this.metadata.put(minKey, hash + "," + minUpper);
-                this.metadata.put(ipAndPort, minLower + "," + hash);
+                metadata.put(minKey, hash + "," + minUpper);
+                metadata.put(ipAndPort, minLower + "," + hash);
                 return getECSComm(minKey);
             } else { // targetKey is successor
-                String[] targetLowerUpper = this.metadata.get(targetKey).split(",");
+                String[] targetLowerUpper = metadata.get(targetKey).split(",");
                 String targetLower = targetLowerUpper[0];
                 String targetUpper = targetLowerUpper[1];
-                this.metadata.put(targetKey, hash + "," + targetUpper);
-                this.metadata.put(ipAndPort, targetLower + "," + hash);
+                metadata.put(targetKey, hash + "," + targetUpper);
+                metadata.put(ipAndPort, targetLower + "," + hash);
                 return getECSComm(targetKey);
             }
-
         }
     }
 
@@ -282,19 +267,19 @@ public class ECS implements IECS {
      * @param upper upper range (exclusive)
      * @return boolean value
      */
-    private boolean keyInRange(String key, String lower, String upper) {
+    public boolean keyInRange(String key, String lower, String upper) {
         String hashedKey = DigestUtils.md5Hex(key);
-        if (hashedKey.compareTo(lower) == 0) {
+        if (hashedKey.compareTo(upper) == 0) {
             return true;
         }
-        // if lowerRange is larger than upperRange
-        if (lower.compareTo(upper) > 0) {
-            // hashedkey <= lowerRange and hasedkey > upperRange
-            return ((hashedKey.compareTo(lower) <= 0) && hashedKey.compareTo(upper) > 0);
+        // if upperRange is larger than lowerRange
+        if (upper.compareTo(lower) > 0) {
+            // hashedkey <= upperRange and hashedkey > lowerRange
+            return ((hashedKey.compareTo(upper) <= 0) && hashedKey.compareTo(lower) > 0);
         } else {
-            // lowerRange is smaller than upperRange (wrap around)
-            return ((hashedKey.compareTo(lower) <= 0 && (upper.compareTo(hashedKey) > 0))) ||
-                    ((hashedKey.compareTo(lower) > 0) && (upper.compareTo(hashedKey) < 0));
+            // upperRange is smaller than lowerRange (wrap around)
+            return ((hashedKey.compareTo(upper) <= 0 && (lower.compareTo(hashedKey) > 0))) ||
+                    ((hashedKey.compareTo(upper) > 0) && (lower.compareTo(hashedKey) < 0));
         }
     }
 
