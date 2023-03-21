@@ -138,7 +138,7 @@ public class KVServerComm implements Runnable {
 		// TODO: send metadata to client when SERVER_NOT_RESPONSIBLE
 		if ((msg.getStatus() == IKVMessage.StatusType.GET || msg.getStatus() == IKVMessage.StatusType.PUT) && !kvServer.keyInRange(msg.getKey())) {
 			logger.info("KVServer not responsible for this key:" + msg.getKey());
-			return res = new KVMessage(IKVMessage.StatusType.SERVER_NOT_RESPONSIBLE, "failed");
+			return res = new KVMessage(IKVMessage.StatusType.SERVER_NOT_RESPONSIBLE);
 		}
 		try{
 			switch (msg.getStatus()) {
