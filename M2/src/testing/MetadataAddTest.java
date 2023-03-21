@@ -1,6 +1,5 @@
 package testing;
 
-import junit.framework.TestCase;
 import org.junit.Test;
 
 import java.util.*;
@@ -24,22 +23,22 @@ public class MetadataAddTest {
 
             for (Map.Entry<String, String> entry : metadata.entrySet()) {
                 String entryKey = entry.getKey();
-                String entryLower = entry.getValue().split(",")[0];
+                String entryUpper = entry.getValue().split(",")[1];
 
                 // minKey computation
                 if (minKey == null) {
                     minKey = entryKey;
-                } else if (metadata.get(minKey).split(",")[0].compareTo(entryLower) > 0) { // if minKey's lowerRange is larger than entryLower
+                } else if (metadata.get(minKey).split(",")[1].compareTo(entryUpper) > 0) { // if minKey's lowerRange is larger than entryUpper
                     minKey = entryKey;
                 }
 
                 // targetKey computation
                 if ((targetKey == null)) {
-                    if (hash.compareTo(entryLower) < 0) {
+                    if (hash.compareTo(entryUpper) < 0) {
                         targetKey = entryKey;
                     }
                 } else {
-                    if ((metadata.get(targetKey).split(",")[0].compareTo(entryLower) > 0) && (hash.compareTo(entryLower) < 0)) {
+                    if ((metadata.get(targetKey).split(",")[1].compareTo(entryUpper) > 0) && (hash.compareTo(entryUpper) < 0)) {
                         targetKey = entryKey;
                     }
                 }
@@ -50,15 +49,15 @@ public class MetadataAddTest {
                 String[] minLowerUpper = metadata.get(minKey).split(",");
                 String minLower = minLowerUpper[0];
                 String minUpper = minLowerUpper[1];
-                metadata.put(minKey, minLower + "," + hash);
-                metadata.put(ipAndPort, hash + "," + minUpper);
+                metadata.put(minKey, hash + "," + minUpper);
+                metadata.put(ipAndPort, minLower + "," + hash);
                 successor = connections.get(minKey);
             } else { // targetKey is successor
                 String[] targetLowerUpper = metadata.get(targetKey).split(",");
                 String targetLower = targetLowerUpper[0];
                 String targetUpper = targetLowerUpper[1];
-                metadata.put(targetKey, targetLower + "," + hash);
-                metadata.put(ipAndPort, hash + "," + targetUpper);
+                metadata.put(targetKey, hash + "," + targetUpper);
+                metadata.put(ipAndPort, targetLower + "," + hash);
                 successor = connections.get(targetKey);
             }
 
@@ -107,8 +106,8 @@ public class MetadataAddTest {
 
         // The resulting medatadata2 should be
         HashMap<String, String> metadata2Result = new HashMap<>();
-        metadata2Result.put("127.0.0.1:1", hash2_1 + "," + hash2);
-        metadata2Result.put(ipAndPort2, hash2 + "," + hash2_1);
+        metadata2Result.put("127.0.0.1:1", hash2 + "," + hash2_1);
+        metadata2Result.put(ipAndPort2, hash2_1 + "," + hash2);
 
         List<Object> result2 = updateMetadataAdd(hash2, ipAndPort2, metadata2, connections2);
 
@@ -131,8 +130,8 @@ public class MetadataAddTest {
 
         // The resulting medatadata3 should be
         HashMap<String, String> metadata3Result = new HashMap<>();
-        metadata3Result.put("127.0.0.1:1", hash3_1 + "," + hash3);
-        metadata3Result.put(ipAndPort3, hash3 + "," + hash3_1);
+        metadata3Result.put("127.0.0.1:1", hash3 + "," + hash3_1);
+        metadata3Result.put(ipAndPort3, hash3_1 + "," + hash3);
 
         List<Object> result3 = updateMetadataAdd(hash3, ipAndPort3, metadata3, connections3);
 
@@ -152,17 +151,17 @@ public class MetadataAddTest {
         String hash4_1 = "80e7bcff701a97e48834556f72689308";
         String hash4_2 = "0".repeat(32);
 
-        metadata4.put("127.0.0.1:1", hash4_1 + "," + hash4_2);
+        metadata4.put("127.0.0.1:1", hash4_2 + "," + hash4_1);
         connections4.put("127.0.0.1:1", "ECSComm 127.0.0.1:1");
 
-        metadata4.put("127.0.0.1:2", hash4_2 + "," + hash4_1);
+        metadata4.put("127.0.0.1:2", hash4_1 + "," + hash4_2);
         connections4.put("127.0.0.1:2", "ECSComm 127.0.0.1:2");
 
         // The resulting medatadata4 should be
         HashMap<String, String> metadata4Result = new HashMap<>();
-        metadata4Result.put("127.0.0.1:1", hash4_1 + "," + hash4);
-        metadata4Result.put("127.0.0.1:2", hash4_2 + "," + hash4_1);
-        metadata4Result.put(ipAndPort4, hash4 + "," + hash4_2);
+        metadata4Result.put("127.0.0.1:1", hash4 + "," + hash4_1);
+        metadata4Result.put("127.0.0.1:2", hash4_1 + "," + hash4_2);
+        metadata4Result.put(ipAndPort4, hash4_2 + "," + hash4);
 
         List<Object> result4 = updateMetadataAdd(hash4, ipAndPort4, metadata4, connections4);
 
@@ -184,17 +183,17 @@ public class MetadataAddTest {
         String hash5_1 = "1".repeat(32);
         String hash5_2 = "9".repeat(32);
 
-        metadata5.put("127.0.0.1:1", hash5_1 + "," + hash5_2);
+        metadata5.put("127.0.0.1:1", hash5_2 + "," + hash5_1);
         connections5.put("127.0.0.1:1", "ECSComm 127.0.0.1:1");
 
-        metadata5.put("127.0.0.1:2", hash5_2 + "," + hash5_1);
+        metadata5.put("127.0.0.1:2", hash5_1 + "," + hash5_2);
         connections5.put("127.0.0.1:2", "ECSComm 127.0.0.1:2");
 
         // The resulting metadata5 should be
         HashMap<String, String> metadata5Result = new HashMap<>();
-        metadata5Result.put("127.0.0.1:1", hash5_1 + "," + hash5);
-        metadata5Result.put("127.0.0.1:2", hash5_2 + "," + hash5_1);
-        metadata5Result.put(ipAndPort5, hash5 + "," + hash5_2);
+        metadata5Result.put("127.0.0.1:1", hash5 + "," + hash5_1);
+        metadata5Result.put("127.0.0.1:2", hash5_1 + "," + hash5_2);
+        metadata5Result.put(ipAndPort5, hash5_2 + "," + hash5);
 
         List<Object> result5 = updateMetadataAdd(hash5, ipAndPort5, metadata5, connections5);
 
@@ -203,7 +202,7 @@ public class MetadataAddTest {
     }
 
     @Test
-    public void three_serves_add_one(){
+    public void three_servers_add_one(){
         // Case 6: three servers currently, add one
         String ipAndPort6 = "127.0.0.1:4";
         String hash6 = "b".repeat(32);
@@ -215,26 +214,55 @@ public class MetadataAddTest {
         String hash6_2 = "8".repeat(32);
         String hash6_3 = "f".repeat(32);
 
-        metadata6.put("127.0.0.1:1", hash6_1 + "," + hash6_3);
+        metadata6.put("127.0.0.1:1", hash6_3 + "," + hash6_1);
         connections6.put("127.0.0.1:1", "ECSComm 127.0.0.1:1");
 
-        metadata6.put("127.0.0.1:2", hash6_2 + "," + hash6_1);
+        metadata6.put("127.0.0.1:2", hash6_1 + "," + hash6_2);
         connections6.put("127.0.0.1:2", "ECSComm 127.0.0.1:2");
 
-        metadata6.put("127.0.0.1:3", hash6_3 + "," + hash6_2);
+        metadata6.put("127.0.0.1:3", hash6_2 + "," + hash6_3);
         connections6.put("127.0.0.1:3", "ECSComm 127.0.0.1:3");
 
         // The resulting metadata6 should be
         HashMap<String, String> metadata6Result = new HashMap<>();
-        metadata6Result.put("127.0.0.1:1", hash6_1 + "," + hash6_3);
-        metadata6Result.put("127.0.0.1:2", hash6_2 + "," + hash6_1);
-        metadata6Result.put("127.0.0.1:3", hash6_3 + "," + hash6);
-        metadata6Result.put(ipAndPort6, hash6 + "," + hash6_2);
+        metadata6Result.put("127.0.0.1:1", hash6_3 + "," + hash6_1);
+        metadata6Result.put("127.0.0.1:2", hash6_1 + "," + hash6_2);
+        metadata6Result.put("127.0.0.1:3", hash6 + "," + hash6_3);
+        metadata6Result.put(ipAndPort6, hash6_2 + "," + hash6);
 
         List<Object> result6 = updateMetadataAdd(hash6, ipAndPort6, metadata6, connections6);
 
         assert(result6.get(0).equals(metadata6Result)); // metadata check
         assert(result6.get(1) == "ECSComm 127.0.0.1:3"); // successor check
+    }
+
+    @Test
+    public void two_servers_add_one_no_target_key() {
+        String ipAndPort = "127.0.0.1:8012";
+        String hash3 = "fd195faed9caee9f46eef6cad47f33b8";
+
+        HashMap<String, String> metadata = new HashMap<>();
+        HashMap<String, String> connections = new HashMap<>();
+
+        String hash1 = "cee1458b33a5f7bd0675d63d94ddd2cd";
+        String hash2 = "8f2d5bc4bdd21ff5d5e7cafa3e3464d4";
+
+        metadata.put("127.0.0.1:8010", hash2 + "," + hash1);
+        connections.put("127.0.0.1:8010", "ECSComm 127.0.0.1:1");
+
+        metadata.put("127.0.0.1:8011", hash1 + "," + hash2);
+        connections.put("127.0.0.1:8011", "ECSComm 127.0.0.1:2");
+
+        // The resulting metadata should be
+        HashMap<String, String> metadataResult = new HashMap<>();
+        metadataResult.put("127.0.0.1:8010", hash2 + "," + hash1);
+        metadataResult.put("127.0.0.1:8011", hash3 + "," + hash2);
+        metadataResult.put(ipAndPort, hash1 + "," + hash3);
+
+        List<Object> result = updateMetadataAdd(hash3, ipAndPort, metadata, connections);
+
+        assert(result.get(0).equals(metadataResult)); // metadata check
+        assert(result.get(1) == "ECSComm 127.0.0.1:2"); // successor check
     }
 
 }
