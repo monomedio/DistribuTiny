@@ -2,7 +2,6 @@ package testing;
 
 import org.junit.Test;
 
-
 public class KeyRangeTest {
 
     public boolean keyInRange(String hashedKey, String lowerRange, String upperRange){
