@@ -29,7 +29,7 @@ public class MetadataAddTest {
                 // minKey computation
                 if (minKey == null) {
                     minKey = entryKey;
-                } else if (metadata.get(minKey).split(",")[0].compareTo(entryUpper) > 0) { // if minKey's lowerRange is larger than entryUpper
+                } else if (metadata.get(minKey).split(",")[1].compareTo(entryUpper) > 0) { // if minKey's lowerRange is larger than entryUpper
                     minKey = entryKey;
                 }
 
@@ -39,7 +39,7 @@ public class MetadataAddTest {
                         targetKey = entryKey;
                     }
                 } else {
-                    if ((metadata.get(targetKey).split(",")[0].compareTo(entryUpper) > 0) && (hash.compareTo(entryUpper) < 0)) {
+                    if ((metadata.get(targetKey).split(",")[1].compareTo(entryUpper) > 0) && (hash.compareTo(entryUpper) < 0)) {
                         targetKey = entryKey;
                     }
                 }
@@ -235,6 +235,35 @@ public class MetadataAddTest {
 
         assert(result6.get(0).equals(metadata6Result)); // metadata check
         assert(result6.get(1) == "ECSComm 127.0.0.1:3"); // successor check
+    }
+
+    @Test
+    public void two_servers_add_one_no_target_key() {
+        String ipAndPort = "127.0.0.1:8012";
+        String hash3 = "fd195faed9caee9f46eef6cad47f33b8";
+
+        HashMap<String, String> metadata = new HashMap<>();
+        HashMap<String, String> connections = new HashMap<>();
+
+        String hash1 = "cee1458b33a5f7bd0675d63d94ddd2cd";
+        String hash2 = "8f2d5bc4bdd21ff5d5e7cafa3e3464d4";
+
+        metadata.put("127.0.0.1:8010", hash2 + "," + hash1);
+        connections.put("127.0.0.1:8010", "ECSComm 127.0.0.1:1");
+
+        metadata.put("127.0.0.1:8011", hash1 + "," + hash2);
+        connections.put("127.0.0.1:8011", "ECSComm 127.0.0.1:2");
+
+        // The resulting metadata should be
+        HashMap<String, String> metadataResult = new HashMap<>();
+        metadataResult.put("127.0.0.1:8010", hash2 + "," + hash1);
+        metadataResult.put("127.0.0.1:8011", hash3 + "," + hash2);
+        metadataResult.put(ipAndPort, hash1 + "," + hash3);
+
+        List<Object> result = updateMetadataAdd(hash3, ipAndPort, metadata, connections);
+
+        assert(result.get(0).equals(metadataResult)); // metadata check
+        assert(result.get(1) == "ECSComm 127.0.0.1:2"); // successor check
     }
 
 }
