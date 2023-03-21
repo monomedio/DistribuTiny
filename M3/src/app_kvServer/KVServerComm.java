@@ -141,13 +141,13 @@ public class KVServerComm implements Runnable {
 
 		if (!keyExists) {
 			logger.debug("Trying to PUT key: " + msg.getKey() + " with value: " + msg.getValue());
-			kvServer.putKV(msg.getKey(), msg.getValue(), false);
+			kvServer.putKV(msg.getKey(), msg.getValue(), true);
 			return new KVMessage(KVMessage.StatusType.PUT_SUCCESS,
 					msg.getKey(), msg.getValue());
 		}
 
 		logger.debug("Trying to PUT_UPDATE for key: " + msg.getKey() + " with value: " + msg.getValue());
-		kvServer.putKV(msg.getKey(), msg.getValue(), false);
+		kvServer.putKV(msg.getKey(), msg.getValue(), true);
 		res = new KVMessage(KVMessage.StatusType.PUT_UPDATE,
 				msg.getKey(), msg.getValue());
 		return res;
@@ -190,6 +190,8 @@ public class KVServerComm implements Runnable {
 					return handlePUTMessage(msg);
 				case KEYRANGE:
 					return res = new KVMessage(IKVMessage.StatusType.KEYRANGE_SUCCESS, kvServer.metadataToString());
+				case PUT_R:
+					return handlePUT_RMessage(msg);
 				default:
 					return res = new KVMessage(IKVMessage.StatusType.FAILED, "Unknown request");
 				}

@@ -8,7 +8,6 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import shared.messages.IKVMessage;
-import shared.messages.KVMessage;
 
 import java.io.IOException;
 import java.net.BindException;
@@ -51,6 +50,8 @@ public class KVServer implements IKVServer {
     private Cache cache;
 
     private InternalStore internalStore;
+
+    private String[] replicas;
     /**
      * Start KV Server at given port
      *
@@ -131,15 +132,22 @@ public class KVServer implements IKVServer {
 
     @Override
     public synchronized void putKV(String key, String value, boolean replicate) throws Exception {
-//        if (replicate) {
-//            internalStore.connect();
-//            internalStore.put();
-//            internalStore.receiveMessage();
-//            internalStore.disconnect();
-//            internalStore.connect();
-//            internalStore.put();
-//            internalStore.receiveMessage();
-//        }
+        // TODO: Method blocks if we wait for receive message, still have to decide if its worth
+        if (replicate) {
+            for (int i = 0; i < this.replicas.length; i++) {
+                String[] ipAndPort = this.replicas[i].split(":");
+                internalStore.connect(ipAndPort[0], Integer.parseInt(ipAndPort[1]));
+                internalStore.put(key, value);
+//                IKVMessage msg = internalStore.receiveMessage();
+//
+//                if (msg.getStatus() != IKVMessage.StatusType.PUT_SUCCESS || msg.getStatus() != IKVMessage.StatusType.PUT_UPDATE) {
+//                    logger.error("Could not replicate data, received:" + msg.getMessage());
+//                    throw new Exception("PUT_ERROR");
+//                }
+                internalStore.disconnect();
+            }
+
+        }
         if (!store.put(key, value)) {
             throw new Exception("PUT_ERROR");
         }
@@ -217,6 +225,7 @@ public class KVServer implements IKVServer {
     }
     public void setMetadata(HashMap<String, String> map) {
         this.metadata = map;
+        setReplicas();
     }
 
     public boolean inMetadata(String ipAndPort) {
@@ -243,6 +252,38 @@ public class KVServer implements IKVServer {
         }
         res.deleteCharAt(res.length() - 1);
         return res.toString();
+    }
+
+
+    public void setReplicas() {
+        //TODO: Still needs to be tested properly for edge cases
+        logger.info("Trying to assign replicas");
+        if (this.metadata.size() < 3) {
+            logger.info("Not enough servers to replicate");
+            return;
+        }
+        String[] replicaIps = new String[2];
+        String secondUpper = null;
+        for (Map.Entry<String, String> entry : this.metadata.entrySet()) {
+            String[] range = entry.getValue().split(",");
+            if (Objects.equals(this.upperRange, range[0])) {
+                replicaIps[0] = entry.getKey();
+                secondUpper = range[1];
+            }
+        }
+        if (secondUpper == null) {
+            logger.info("Could not find a replica");
+            return;
+        }
+        for (Map.Entry<String, String> entry : this.metadata.entrySet()) {
+            String[] range = entry.getValue().split(",");
+            if (Objects.equals(secondUpper, range[0])) {
+                replicaIps[1] = entry.getKey();
+            }
+        }
+
+        this.replicas = replicaIps;
+        System.out.println(Arrays.toString(this.replicas));
     }
 
     @Override
