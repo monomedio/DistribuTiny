@@ -55,7 +55,11 @@ public class KVServerComm implements Runnable {
 			while(isOpen) {
 				try {
 					KVMessage latestMsg = receiveMessage();
-					sendMessage(handleMessage(latestMsg));
+					KVMessage response = handleMessage(latestMsg);
+					if (response != null) {
+						sendMessage(response);
+					}
+
 				/* connection either terminated by the client or lost due to 
 				 * network problems*/	
 				} catch (IOException ioe) {
@@ -159,7 +163,7 @@ public class KVServerComm implements Runnable {
 			return res = new KVMessage(IKVMessage.StatusType.SERVER_STOPPED, "error");
 		}
 		boolean keyExists;
-		if (msg.getKey() != null && msg.getKey().length() > 10 ) {
+		if (msg.getKey() != null && msg.getKey().length() > 10 && msg.getStatus() != IKVMessage.StatusType.REPLICATE) {
 			logger.info("Key (" + msg.getKey().length() +") too long");
 			return res = new KVMessage(IKVMessage.StatusType.FAILED, "Key too long!");
 		}
@@ -192,6 +196,27 @@ public class KVServerComm implements Runnable {
 					return res = new KVMessage(IKVMessage.StatusType.KEYRANGE_SUCCESS, kvServer.metadataToString());
 				case PUT_R:
 					return handlePUT_RMessage(msg);
+				case REPLICATE:
+					String data = msg.getKey();
+					if (data.length() == 0) {
+//						sendMessage(new KVMessage(IKVMessage.StatusType.TR_SUCC, "success"));
+						logger.error("Empty replica message");
+						return null;
+					}
+					String[] keyVals = data.split(";");
+					if (keyVals.length % 2 != 0){
+						logger.error("Data transfer failed. Missing key or value");
+//						sendMessage(new KVMessage(IKVMessage.StatusType.FAILED, "failed"));
+						return null;
+					}
+					if (kvServer.importData(keyVals)) {
+//						sendMessage(new KVMessage(IKVMessage.StatusType.TR_SUCC, "success"));
+						logger.info("Successfully ingested data");
+					} else {
+						logger.error("Couldn't store key-values at server");
+//						sendMessage(new KVMessage(IKVMessage.StatusType.FAILED, "failed"));
+					}
+					return null;
 				default:
 					return res = new KVMessage(IKVMessage.StatusType.FAILED, "Unknown request");
 				}

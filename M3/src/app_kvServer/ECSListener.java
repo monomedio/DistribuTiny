@@ -164,7 +164,7 @@ public class ECSListener implements Runnable {
         }
     }
 
-    private String dataToString(Map<String, String> map) {
+    public String dataToString(Map<String, String> map) {
         StringBuilder kvString = new StringBuilder();
         for (Map.Entry<String, String> entry : map.entrySet()) {
             kvString.append(entry.getKey()).append(";").append(entry.getValue());

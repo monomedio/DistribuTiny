@@ -93,6 +93,20 @@ public class Storage {
         return map;
     }
 
+    public HashMap<String, String> createMapInRange(String lowerRange, String upperRange) throws IOException {
+        File folder = new File(path);
+        HashMap<String, String> map = new HashMap<String, String>();
+        for (final File fileEntry : folder.listFiles()) {
+            if (fileEntry.isDirectory() || !keyInRange(fileEntry.getName(), lowerRange, upperRange)) {
+                System.out.println("Ignoring directory and replica");
+            } else {
+                System.out.println(Files.readString(fileEntry.toPath()));
+                map.put(fileEntry.getName(), Files.readString(fileEntry.toPath()));
+            }
+        }
+        return map;
+    }
+
     public HashMap<String, String> createMap() throws IOException {
         File folder = new File(path);
         HashMap<String, String> map = new HashMap<String, String>();

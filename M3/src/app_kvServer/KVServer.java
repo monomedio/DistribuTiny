@@ -8,6 +8,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import shared.messages.IKVMessage;
+import shared.messages.KVMessage;
 
 import java.io.IOException;
 import java.net.BindException;
@@ -52,6 +53,10 @@ public class KVServer implements IKVServer {
     private InternalStore internalStore;
 
     private String[] replicas;
+
+    private String[] coordinators;
+
+    private String extendedLowerRange;
     /**
      * Start KV Server at given port
      *
@@ -132,6 +137,9 @@ public class KVServer implements IKVServer {
 
     @Override
     public synchronized void putKV(String key, String value, boolean replicate) throws Exception {
+        if (replicate && this.replicas == null) {
+            replicate = false;
+        }
         // TODO: Method blocks if we wait for receive message, still have to decide if its worth
         if (replicate) {
             for (int i = 0; i < this.replicas.length; i++) {
@@ -216,16 +224,43 @@ public class KVServer implements IKVServer {
         return store.createMap();
     }
 
+    public synchronized Map<String, String> exportDataInRange() throws IOException {
+        return store.createMapInRange(this.lowerRange, this.upperRange);
+    }
+
     public synchronized boolean importData(String[] keyAndVals) {
         return store.processMap(keyAndVals);
     }
 
     public synchronized boolean removeRedundantData() {
-        return store.removeExtraData(this.lowerRange, this.upperRange);
+        return store.removeExtraData(this.extendedLowerRange, this.upperRange);
     }
     public void setMetadata(HashMap<String, String> map) {
         this.metadata = map;
-        setReplicas();
+        replicateData();
+    }
+
+    public void replicateData() {
+        boolean changed = setReplicas();
+        if (changed) {
+            try {
+                String data = ecsListener.dataToString(exportDataInRange());
+                for (int i = 0; i < this.replicas.length; i++) {
+                    String[] ipAndPort = this.replicas[i].split(":");
+                    internalStore.connect(ipAndPort[0], Integer.parseInt(ipAndPort[1]));
+                    internalStore.sendMessage(new KVMessage(IKVMessage.StatusType.REPLICATE, data));
+//                IKVMessage msg = internalStore.receiveMessage();
+//
+//                if (msg.getStatus() != IKVMessage.StatusType.PUT_SUCCESS || msg.getStatus() != IKVMessage.StatusType.PUT_UPDATE) {
+//                    logger.error("Could not replicate data, received:" + msg.getMessage());
+//                    throw new Exception("PUT_ERROR");
+//                }
+                    internalStore.disconnect();
+                }
+            } catch (Exception e) {
+                logger.error("Could not replicate data");
+            }
+        }
     }
 
     public boolean inMetadata(String ipAndPort) {
@@ -255,35 +290,55 @@ public class KVServer implements IKVServer {
     }
 
 
-    public void setReplicas() {
+    public boolean setReplicas() {
         //TODO: Still needs to be tested properly for edge cases
         logger.info("Trying to assign replicas");
         if (this.metadata.size() < 3) {
             logger.info("Not enough servers to replicate");
-            return;
+            return false;
         }
         String[] replicaIps = new String[2];
+        String[] coordIps = new String[2];
         String secondUpper = null;
+        String secondLower = null;
         for (Map.Entry<String, String> entry : this.metadata.entrySet()) {
             String[] range = entry.getValue().split(",");
             if (Objects.equals(this.upperRange, range[0])) {
                 replicaIps[0] = entry.getKey();
                 secondUpper = range[1];
             }
+            if (Objects.equals(this.lowerRange, range[1])) {
+                coordIps[0] = entry.getKey();
+                secondLower = range[0];
+            }
         }
         if (secondUpper == null) {
             logger.info("Could not find a replica");
-            return;
+            return false;
         }
         for (Map.Entry<String, String> entry : this.metadata.entrySet()) {
             String[] range = entry.getValue().split(",");
             if (Objects.equals(secondUpper, range[0])) {
                 replicaIps[1] = entry.getKey();
             }
+
+            if (Objects.equals(secondLower, range[1])) {
+                coordIps[1] = entry.getKey();
+                // Reusing variable to keep extended range
+                secondLower = range[0];
+            }
         }
 
-        this.replicas = replicaIps;
-        System.out.println(Arrays.toString(this.replicas));
+        //this.replicas = replicaIps;
+        if (this.replicas != null && Objects.equals(this.replicas[0], replicaIps[0]) && Objects.equals(this.replicas[1], replicaIps[0])) {
+            logger.info("Replicas unchanged");
+            return false;
+        } else {
+            this.replicas = replicaIps;
+            this.coordinators = coordIps;
+            this.extendedLowerRange = secondLower;
+            return true;
+        }
     }
 
     @Override
