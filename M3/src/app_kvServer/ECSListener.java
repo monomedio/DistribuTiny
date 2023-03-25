@@ -166,10 +166,19 @@ public class ECSListener implements Runnable {
 
     public String dataToString(Map<String, String> map) {
         StringBuilder kvString = new StringBuilder();
+        StringBuilder kvStringReplica = new StringBuilder();
         for (Map.Entry<String, String> entry : map.entrySet()) {
-            kvString.append(entry.getKey()).append(";").append(entry.getValue());
-            kvString.append(";");
+            if (kvServer.keyInRange(entry.getKey())) {
+                kvString.append(entry.getKey()).append(";").append(entry.getValue());
+                kvString.append(";");
+            } else {
+                kvStringReplica.append(entry.getKey()).append(";").append(entry.getValue());
+                kvStringReplica.append(";");
+            }
         }
+        System.out.println(kvString);
+        System.out.println(kvStringReplica);
+        kvString.append(kvStringReplica);
         return kvString.toString();
     }
 
