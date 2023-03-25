@@ -189,17 +189,17 @@ public class KVServer implements IKVServer {
 
     public boolean keyInRange(String key) {
         String hashedKey = DigestUtils.md5Hex(key);
-        if (hashedKey.compareTo(this.lowerRange) == 0) {
+        if (hashedKey.compareTo(this.upperRange) == 0) {
             return true;
         }
-        // if lowerRange is larger than upperRange
-        if (this.lowerRange.compareTo(this.upperRange) > 0) {
-            // hashedkey <= lowerRange and hasedkey > upperRange
-            return ((hashedKey.compareTo(this.lowerRange) <= 0) && hashedKey.compareTo(this.upperRange) > 0);
+        // if upperRange is larger than lowerRange
+        if (this.upperRange.compareTo(this.lowerRange) > 0) {
+            // hashedkey <= upperRange and hashedkey > lowerRange
+            return ((hashedKey.compareTo(this.upperRange) <= 0) && hashedKey.compareTo(this.lowerRange) > 0);
         } else {
-            // lowerRange is smaller than upperRange (wrap around)
-            return ((hashedKey.compareTo(lowerRange) <= 0 && (upperRange.compareTo(hashedKey) > 0))) ||
-                    ((hashedKey.compareTo(lowerRange) > 0) && (upperRange.compareTo(hashedKey) < 0));
+            // upperRange is smaller than lowerRange (wrap around)
+            return ((hashedKey.compareTo(this.upperRange) <= 0 && (this.lowerRange.compareTo(hashedKey) > 0))) ||
+                    ((hashedKey.compareTo(this.upperRange) > 0) && (this.lowerRange.compareTo(hashedKey) < 0));
         }
     }
 
