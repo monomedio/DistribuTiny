@@ -159,7 +159,7 @@ public class KVServerComm implements Runnable {
 	}
 	private KVMessage handleMessage(KVMessage msg) throws IOException {
 		KVMessage res;
-		if (kvServer.isStopped()) {
+		if (msg.getStatus() != IKVMessage.StatusType.REPLICATE && kvServer.isStopped()) {
 			return res = new KVMessage(IKVMessage.StatusType.SERVER_STOPPED, "error");
 		}
 		boolean keyExists;

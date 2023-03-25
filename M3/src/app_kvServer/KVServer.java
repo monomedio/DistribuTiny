@@ -350,9 +350,8 @@ public class KVServer implements IKVServer {
                 secondLower = range[0];
             }
         }
-
         //this.replicas = replicaIps;
-        if (this.replicas != null && Objects.equals(this.replicas[0], replicaIps[0]) && Objects.equals(this.replicas[1], replicaIps[0])) {
+        if (this.replicas != null && this.replicas.length == replicaIps.length && Objects.equals(this.replicas[0], replicaIps[0]) && Objects.equals(this.replicas[1], replicaIps[0])) {
             logger.info("Replicas unchanged");
             return false;
         } else {
