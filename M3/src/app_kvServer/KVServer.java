@@ -246,7 +246,7 @@ public class KVServer implements IKVServer {
     public void replicateData() {
         boolean changed = setReplicas();
         if (changed) {
-            logger.info("Replicating data to " + this.replicas[0] + " and " + this.replicas[1]);
+            logger.info("Replicating data to " + Arrays.toString(this.replicas));
             try {
                 String data = ecsListener.dataToString(exportDataInRange());
                 for (int i = 0; i < this.replicas.length; i++) {
@@ -297,6 +297,24 @@ public class KVServer implements IKVServer {
     public boolean setReplicas() {
         //TODO: Still needs to be tested properly for edge cases
         logger.info("Trying to assign replicas");
+        if (this.metadata.size() == 2) {
+            String[] singleReplica = new String[1];
+            String[] singleCoors = new String[1];
+            for (Map.Entry<String, String> entry: this.metadata.entrySet()) {
+                if (!Objects.equals(entry.getKey(), this.getHostname() + ":" + this.getPort())) {
+                    singleReplica[0] = entry.getKey();
+                    singleCoors[0] = entry.getKey();
+                }
+            }
+            if (this.replicas != null && Objects.equals(this.replicas[0], singleReplica[0])) {
+                logger.info("Replica unchanged");
+                return false;
+            } else {
+                this.replicas = singleReplica;
+                this.coordinators = singleCoors;
+                return true;
+            }
+        }
         if (this.metadata.size() < 3) {
             logger.info("Not enough servers to replicate");
             return false;
