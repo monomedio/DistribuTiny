@@ -119,6 +119,8 @@ public class ECSComm implements Runnable {
 					ecs.removeServer(this.getClientListenerIpPort(), msg.getKey());
 					return null;
 				default:
+					logger.info("Lost connection with server " + getClientListenerIpPort());
+					ecs.removeDeadServer(this.clientListenerIpPort);
 					return res = new KVMessage(IKVMessage.StatusType.FAILED, "Unknown request");
 				}
 		} catch (Exception e) {

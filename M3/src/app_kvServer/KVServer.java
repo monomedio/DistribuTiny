@@ -233,6 +233,9 @@ public class KVServer implements IKVServer {
     }
 
     public synchronized boolean removeRedundantData() {
+        if (extendedLowerRange == null) {
+            return store.removeExtraData(this.lowerRange, this.upperRange);
+        }
         return store.removeExtraData(this.extendedLowerRange, this.upperRange);
     }
     public void setMetadata(HashMap<String, String> map) {
@@ -243,6 +246,7 @@ public class KVServer implements IKVServer {
     public void replicateData() {
         boolean changed = setReplicas();
         if (changed) {
+            logger.info("Replicating data to " + this.replicas[0] + " and " + this.replicas[1]);
             try {
                 String data = ecsListener.dataToString(exportDataInRange());
                 for (int i = 0; i < this.replicas.length; i++) {

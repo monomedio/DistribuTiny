@@ -256,6 +256,15 @@ public class ECS implements IECS {
         successor.sendData(data);
     }
 
+    public synchronized void removeDeadServer(String ipAndPort) throws IOException {
+        if (!this.metadata.containsKey(ipAndPort)) {
+            logger.info("Server already removed");
+            return;
+        }
+        updateMetadataRemove(ipAndPort);
+        broadcastMetadata();
+    }
+
     //HELPERS
 
     /**

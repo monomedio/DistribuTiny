@@ -218,9 +218,10 @@ public class ECSListener implements Runnable {
                     String[] record = metadata[i].split(",");
                     if (this.getServerIpAndPort().compareTo(record[2]) == 0) {
                         kvServer.setRange(record[0], record[1]);
-                        if (this.kvServer.isWriteLocked()) {
-                            Boolean deleted = kvServer.removeRedundantData();
-                        }
+//                        if (this.kvServer.isWriteLocked()) {
+//                            Boolean deleted = kvServer.removeRedundantData();
+//                        }
+                        kvServer.removeRedundantData();
                     }
                     metadataMap.put(record[2], record[0] + "," + record[1]);
                 }
