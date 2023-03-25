@@ -217,7 +217,11 @@ public class KVServer implements IKVServer {
     }
 
     public synchronized Map<String, String> exportData(String lowerRange, String upperRange) throws IOException {
-        return store.createMap(lowerRange, upperRange);
+        if (extendedLowerRange == null) {
+            return store.createMap(lowerRange, upperRange);
+        }
+        System.out.println(extendedLowerRange);
+        return store.createMapNonReplicas(lowerRange, upperRange, extendedLowerRange, this.lowerRange, this.upperRange);
     }
 
     public synchronized Map<String, String> exportData() throws IOException {
@@ -300,10 +304,12 @@ public class KVServer implements IKVServer {
         if (this.metadata.size() == 2) {
             String[] singleReplica = new String[1];
             String[] singleCoors = new String[1];
+            String extendedLower = null;
             for (Map.Entry<String, String> entry: this.metadata.entrySet()) {
                 if (!Objects.equals(entry.getKey(), this.getHostname() + ":" + this.getPort())) {
                     singleReplica[0] = entry.getKey();
                     singleCoors[0] = entry.getKey();
+                    extendedLower = entry.getValue().split(",")[0];
                 }
             }
             if (this.replicas != null && Objects.equals(this.replicas[0], singleReplica[0])) {
@@ -312,6 +318,7 @@ public class KVServer implements IKVServer {
             } else {
                 this.replicas = singleReplica;
                 this.coordinators = singleCoors;
+                this.extendedLowerRange = extendedLower;
                 return true;
             }
         }

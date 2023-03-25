@@ -107,6 +107,22 @@ public class Storage {
         return map;
     }
 
+    public HashMap<String, String> createMapNonReplicas(String newlowerRange, String newupperRange, String extendedLowerRange, String oldlowerRange, String oldUpperRange) throws IOException {
+        File folder = new File(path);
+        HashMap<String, String> map = new HashMap<String, String>();
+        for (final File fileEntry : folder.listFiles()) {
+            boolean isReplica = keyInRange(fileEntry.getName(), extendedLowerRange, oldlowerRange);
+            System.out.println(fileEntry.getName() + " " + isReplica);
+            if (fileEntry.isDirectory() || keyInRange(fileEntry.getName(), newlowerRange, newupperRange) || isReplica) {
+                System.out.println("Ignoring directory");
+            } else {
+                System.out.println(Files.readString(fileEntry.toPath()));
+                map.put(fileEntry.getName(), Files.readString(fileEntry.toPath()));
+            }
+        }
+        return map;
+    }
+
     public HashMap<String, String> createMap() throws IOException {
         File folder = new File(path);
         HashMap<String, String> map = new HashMap<String, String>();
