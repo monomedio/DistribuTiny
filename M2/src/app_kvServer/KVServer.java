@@ -232,6 +232,15 @@ public class KVServer implements IKVServer {
         return res.toString();
     }
 
+    // TODO: implement for keyrange read success (Sam)
+    public String extendedMetadataToString() {
+        if (this.metadata.isEmpty()) {
+            return "EMPTY";
+        }
+        StringBuilder res = new StringBuilder();
+        return null;
+    }
+
     @Override
     public void run() {
         running = initializeServer();

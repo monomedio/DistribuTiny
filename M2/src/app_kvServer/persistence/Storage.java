@@ -65,17 +65,17 @@ public class Storage {
 
     public boolean keyInRange(String key, String lowerRange, String upperRange) {
         String hashedKey = DigestUtils.md5Hex(key);
-        if (hashedKey.compareTo(lowerRange) == 0) {
+        if (hashedKey.compareTo(upperRange) == 0) {
             return true;
         }
-        // if lowerRange is larger than upperRange
-        if (lowerRange.compareTo(upperRange) > 0) {
-            // hashedkey <= lowerRange and hasedkey > upperRange
-            return ((hashedKey.compareTo(lowerRange) <= 0) && hashedKey.compareTo(upperRange) > 0);
+        // if upperRange is larger than lowerRange
+        if (upperRange.compareTo(lowerRange) > 0) {
+            // hashedkey <= upperRange and hashedkey > lowerRange
+            return ((hashedKey.compareTo(upperRange) <= 0) && hashedKey.compareTo(lowerRange) > 0);
         } else {
-            // lowerRange is smaller than upperRange (wrap around)
-            return ((hashedKey.compareTo(lowerRange) <= 0 && (upperRange.compareTo(hashedKey) > 0))) ||
-                    ((hashedKey.compareTo(lowerRange) > 0) && (upperRange.compareTo(hashedKey) < 0));
+            // upperRange is smaller than lowerRange (wrap around)
+            return ((hashedKey.compareTo(upperRange) <= 0 && (lowerRange.compareTo(hashedKey) > 0))) ||
+                    ((hashedKey.compareTo(upperRange) > 0) && (lowerRange.compareTo(hashedKey) < 0));
         }
     }
 
