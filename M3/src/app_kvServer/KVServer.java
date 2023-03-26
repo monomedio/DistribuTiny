@@ -321,44 +321,47 @@ public class KVServer implements IKVServer {
 
     public String metadataToStringRead() {
         StringBuilder res = new StringBuilder();
+        if (this.metadata.size() == 2) {
+            for (Map.Entry<String, String> entry: this.metadata.entrySet()) {
+                String[] range = entry.getValue().split(",");
+                res.append(range[1]);
+                res.append(",");
+                res.append(range[1]);
+                res.append(",");
+                res.append(entry.getKey());
+                res.append(";");
+            }
+            res.deleteCharAt(res.length() - 1);
+            return res.toString();
+        }
+        String finalLower = null;
         for (Map.Entry<String, String> entry1: this.metadata.entrySet()) {
-            String[] replicaIps = new String[2];
-            String[] coordIps = new String[2];
-            String secondUpper = null;
-            String secondLower = null;
-            String finalLower = null;
-            for (Map.Entry<String, String> entry : this.metadata.entrySet()) {
-                //System.out.println(entry.getKey() + "vs" + this.getHostname());
-                if (Objects.equals(entry.getKey(), this.getHostname() + ":" + this.getPort())) {
+            String[] currentRange = entry1.getValue().split(",");
+            String[] metaData = metadataToString().split(";");
+            String predecessorLower = null;
+            String predecessorIp = null;
+
+            for (String meta : metaData) {
+                String[] data = meta.split(",");
+                if (data[2].equals(entry1.getKey())) {
                     continue;
                 }
-                String[] range = entry.getValue().split(",");
-                if (Objects.equals(this.upperRange, range[0])) {
-                    replicaIps[0] = entry.getKey();
-                    secondUpper = range[1];
-                }
-                if (Objects.equals(this.lowerRange, range[1])) {
-                    coordIps[0] = entry.getKey();
-                    secondLower = range[0];
+                if (data[1].equals(currentRange[0])) {
+                    predecessorLower = data[0];
+                    predecessorIp = data[2];
                 }
             }
 
-            for (Map.Entry<String, String> entry : this.metadata.entrySet()) {
-                //System.out.println(entry.getKey() + "vs" + this.getHostname());
-                if (Objects.equals(entry.getKey(), this.getHostname() + ":" + this.getPort())) {
+            for (String meta : metaData) {
+                String[] data = meta.split(",");
+                if (data[2].equals(predecessorIp)) {
                     continue;
                 }
-                String[] range = entry.getValue().split(",");
-                if (Objects.equals(secondUpper, range[0])) {
-                    replicaIps[1] = entry.getKey();
-                }
-
-                if (Objects.equals(secondLower, range[1])) {
-                    coordIps[1] = entry.getKey();
-                    // Reusing variable to keep extended range
-                    finalLower = range[0];
+                if (data[1].equals(predecessorLower)) {
+                    finalLower = data[0];
                 }
             }
+
             res.append(finalLower);
             res.append(",");
             res.append(entry1.getValue().split(",")[1]);
