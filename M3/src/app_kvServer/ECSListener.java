@@ -230,11 +230,12 @@ public class ECSListener implements Runnable {
 //                        if (this.kvServer.isWriteLocked()) {
 //                            Boolean deleted = kvServer.removeRedundantData();
 //                        }
-                        kvServer.removeRedundantData();
+                       //kvServer.removeRedundantData();
                     }
                     metadataMap.put(record[2], record[0] + "," + record[1]);
                 }
                 kvServer.setMetadata(metadataMap);
+                kvServer.removeRedundantData();
                 if (!kvServer.inMetadata(getServerIpAndPort())) {
                     kvServer.clearStorage();
                     this.running = false;

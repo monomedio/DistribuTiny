@@ -330,7 +330,12 @@ public class KVServer implements IKVServer {
         String[] coordIps = new String[2];
         String secondUpper = null;
         String secondLower = null;
+        String finalLower = null;
         for (Map.Entry<String, String> entry : this.metadata.entrySet()) {
+            //System.out.println(entry.getKey() + "vs" + this.getHostname());
+            if (Objects.equals(entry.getKey(), this.getHostname() + ":" + this.getPort())) {
+                continue;
+            }
             String[] range = entry.getValue().split(",");
             if (Objects.equals(this.upperRange, range[0])) {
                 replicaIps[0] = entry.getKey();
@@ -339,6 +344,7 @@ public class KVServer implements IKVServer {
             if (Objects.equals(this.lowerRange, range[1])) {
                 coordIps[0] = entry.getKey();
                 secondLower = range[0];
+                System.out.println("Secondlower1: " + entry.getKey());
             }
         }
         if (secondUpper == null) {
@@ -346,6 +352,10 @@ public class KVServer implements IKVServer {
             return false;
         }
         for (Map.Entry<String, String> entry : this.metadata.entrySet()) {
+            //System.out.println(entry.getKey() + "vs" + this.getHostname());
+            if (Objects.equals(entry.getKey(), this.getHostname() + ":" + this.getPort())) {
+                continue;
+            }
             String[] range = entry.getValue().split(",");
             if (Objects.equals(secondUpper, range[0])) {
                 replicaIps[1] = entry.getKey();
@@ -354,7 +364,8 @@ public class KVServer implements IKVServer {
             if (Objects.equals(secondLower, range[1])) {
                 coordIps[1] = entry.getKey();
                 // Reusing variable to keep extended range
-                secondLower = range[0];
+                finalLower = range[0];
+                System.out.println("Secondlower2 " + entry.getKey());
             }
         }
         //this.replicas = replicaIps;
@@ -364,7 +375,7 @@ public class KVServer implements IKVServer {
         } else {
             this.replicas = replicaIps;
             this.coordinators = coordIps;
-            this.extendedLowerRange = secondLower;
+            this.extendedLowerRange = finalLower;
             return true;
         }
     }
