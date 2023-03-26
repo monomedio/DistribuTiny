@@ -124,6 +124,22 @@ public class InteractionTest extends TestCase {
 	}
 
 	@Test
+	public void testGetUnsetValue() {
+		String key = "an unset value";
+		IKVMessage response = null;
+		Exception ex = null;
+
+		try {
+			response = kvClient.get(key);
+		} catch (Exception e) {
+			ex = e;
+		}
+
+		assertTrue(ex == null && response.getStatus() == StatusType.get_error);
+	}
+
+
+	@Test
 	public void testGetReplica() {
 		String key = "foo";
 		String value = "bar";
@@ -163,19 +179,108 @@ public class InteractionTest extends TestCase {
 	}
 
 	@Test
-	public void testGetUnsetValue() {
-		String key = "an unset value";
+	public void testGetUpdatedValueFromReplica() {
+		String key = "keykey";
+		String value = "initial";
+
 		IKVMessage response = null;
 		Exception ex = null;
 
 		try {
-			response = kvClient.get(key);
+			kvClient.put(key, value);
+			response = kvClient3.get(key);
+			assertEquals(response.getValue(), value);
+			kvClient.put(key, "updated");
+			response = kvClient3.get(key);
+
+		} catch (Exception e) {
+			ex = e;
+		}
+
+		assertTrue(ex == null && response.getValue().equals("updated"));
+	}
+
+
+	@Test
+	public void testMultipleReplicasGet() {
+		String key = "keykey";
+		String value = "valval";
+
+		IKVMessage response = null;
+		IKVMessage response2 = null;
+		Exception ex = null;
+
+		try {
+			kvClient.put(key, value);
+			response = kvClient3.get(key);
+			response2 = kvClient2.get(key);
+		} catch (Exception e) {
+			ex = e;
+		}
+
+		assertTrue(ex == null && response.getStatus() == StatusType.get_success && response.getValue().equals(value));
+		assertTrue(response2.getStatus() == StatusType.get_success && response2.getValue().equals(value));
+
+	}
+
+	@Test
+	public void testMultipleReplicasDeletedValue() {
+		String key = "keykey";
+		String value = "valval";
+
+		IKVMessage response = null;
+		IKVMessage response2 = null;
+		Exception ex = null;
+
+		try {
+			kvClient.put(key, value);
+			response = kvClient3.get(key);
+			response2 = kvClient2.get(key);
+			assertEquals(response.getValue(), value);
+			assertEquals(response2.getValue(), value);
+			kvClient.put(key, "null");
+			response = kvClient3.get(key);
+			response2 = kvClient2.get(key);
+
 		} catch (Exception e) {
 			ex = e;
 		}
 
 		assertTrue(ex == null && response.getStatus() == StatusType.get_error);
+		assertTrue(response2.getStatus() == StatusType.get_error);
+
 	}
+
+	@Test
+	public void testMultipleReplicasUpdatedValue() {
+		String key = "keykey";
+		String value = "valval";
+
+		IKVMessage response = null;
+		IKVMessage response2 = null;
+		Exception ex = null;
+
+		try {
+			kvClient.put(key, value);
+			response = kvClient3.get(key);
+			response2 = kvClient2.get(key);
+			assertEquals(response.getValue(), value);
+			assertEquals(response2.getValue(), value);
+			kvClient.put(key, "updated");
+			response = kvClient3.get(key);
+			response2 = kvClient2.get(key);
+
+		} catch (Exception e) {
+			ex = e;
+		}
+
+		assertTrue(ex == null && response.getValue().equals("updated") && response2.getValue().equals("updated"));
+
+	}
+
+
+
+
 
 
 

@@ -49,6 +49,18 @@ public class AllTests {
 				}
 			}
 		});
+		Thread thread4 = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					new LogSetup("logs/testing/test.log", Level.ERROR);
+					new KVServer(50002, 10, "FIFO", "sample_keys_b",
+							InetAddress.getByName("127.0.0.1"), InetAddress.getByName("127.0.0.1"), 8001).run();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		});
 		thread.start();
 		try {
 			Thread.sleep(1000);
@@ -67,6 +79,12 @@ public class AllTests {
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		}
+		thread4.start();
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public static Test suite() throws IOException {
@@ -77,6 +95,7 @@ public class AllTests {
 		clientSuite.addTestSuite(KeyRangeReadTest.class);
 		clientSuite.addTestSuite(KeyRangeTest.class);
 		clientSuite.addTestSuite(MetadataAddTest.class);
+		clientSuite.addTestSuite(MetadataRemoveTest.class);
 
 		return clientSuite;
 	}
