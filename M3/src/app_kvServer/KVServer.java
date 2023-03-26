@@ -395,6 +395,9 @@ public class KVServer implements IKVServer {
         }
         if (this.metadata.size() < 3) {
             logger.info("Not enough servers to replicate");
+            this.replicas = null;
+            this.coordinators = null;
+            this.extendedLowerRange = null;
             return false;
         }
         String[] replicaIps = new String[2];
