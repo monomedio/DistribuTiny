@@ -44,4 +44,6 @@ public interface KVCommInterface {
 	public IKVMessage get(String key) throws Exception;
 
     IKVMessage keyRange() throws Exception;
+
+	IKVMessage keyRangeRead() throws Exception;
 }

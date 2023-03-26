@@ -6,6 +6,7 @@ import logger.LogSetup;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import shared.messages.IKVMessage;
+import shared.messages.KVMessage;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -164,6 +165,27 @@ public class KVClient implements IKVClient {
                         this.kvStore = null;
                         printError("Could not complete KEYRANGE request due to I/O error. Disconnecting...");
                         logger.warn("Could not complete KEYRANGE request due to I/O error. Disconnecting...");
+                    }
+                } else if (tokens.length != 1) {
+                    printError("Too many arguments given. 0 expected.");
+                } else {
+                    printError("Not connected to a server.");
+                }
+                break;
+            case "keyrange_read":
+                if (tokens.length == 1 && this.kvStore != null) {
+                    try {
+                        IKVMessage message = this.kvStore.keyRangeRead();
+                        IKVMessage.StatusType status = message.getStatus();
+                        if (status == IKVMessage.StatusType.server_stopped || status == IKVMessage.StatusType.failed) {
+                            printError(message.getMessage());
+                        } else {
+                            System.out.println(message.getMessage());
+                        }
+                    } catch (Exception e) {
+                        this.kvStore = null;
+                        printError("Could not complete KEYRANGE_READ request due to I/O error. Disconnecting...");
+                        logger.warn("Could not complete KEYRANGE_READ request due to I/O error. Disconnecting...");
                     }
                 } else if (tokens.length != 1) {
                     printError("Too many arguments given. 0 expected.");

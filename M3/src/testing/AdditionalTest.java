@@ -170,7 +170,7 @@ public class AdditionalTest extends TestCase {
 	@Test
 	public void testThreeAryConstructor() {
 		kvMessage = new KVMessage(IKVMessage.StatusType.get, "key", "value");
-		assertTrue(kvMessage.getMessage().equals("GET key value\r\n")
+		assertTrue(kvMessage.getMessage().equals("get key value\r\n")
 				&& kvMessage.getStatus().equals(IKVMessage.StatusType.get)
 				&& kvMessage.getKey().equals("key")
 				&& kvMessage.getValue().equals("value"));
@@ -179,16 +179,16 @@ public class AdditionalTest extends TestCase {
 	@Test
 	public void testBinaryConstructor() {
 		kvMessage = new KVMessage(IKVMessage.StatusType.get, "key");
-		assertTrue(kvMessage.getMessage().equals("GET key\r\n")
+		assertTrue(kvMessage.getMessage().equals("get key\r\n")
 				&& kvMessage.getStatus().equals(IKVMessage.StatusType.get)
 				&& kvMessage.getKey().equals("key"));
 	}
 
 	@Test
 	public void testByteConstructor() {
-		byte[] msgArray = {80, 85, 84, 32, 104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100};
+		byte[] msgArray = {112, 117, 116, 32, 104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100};
 		kvMessage = new KVMessage(msgArray);
-		assertTrue(kvMessage.getMessage().equals("PUT hello world\r\n")
+		assertTrue(kvMessage.getMessage().equals("put hello world\r\n")
 				&& kvMessage.getStatus().equals(IKVMessage.StatusType.put)
 				&& kvMessage.getKey().equals("hello")
 				&& kvMessage.getValue().equals("world"));

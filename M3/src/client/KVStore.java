@@ -7,8 +7,8 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.HashMap;
-import java.util.Map;
+import java.sql.Array;
+import java.util.*;
 
 import org.apache.log4j.Logger;
 import shared.messages.KVMessage;
@@ -20,6 +20,7 @@ public class KVStore implements KVCommInterface {
 	private String address;
 	private int port;
 	private HashMap<String, String> metadata;
+	private HashMap<String, String> read_metadata;
 
 	private BufferedInputStream input;
 	private BufferedOutputStream output;
@@ -147,20 +148,48 @@ public class KVStore implements KVCommInterface {
 		try {
 			return get(key);
 		} catch (Exception e) { // Server is offline
-			System.out.println("START FOR LOOP");
-			for (Map.Entry<String, String> entry : this.metadata.entrySet()) { // Try every server that client knows
+			ArrayList<String> arr = new ArrayList();
+			for (Map.Entry<String, String> entry : this.read_metadata.entrySet()) { // Try every server that client knows
 				disconnect();
 				this.address = entry.getKey().split(":")[0];
 				this.port = Integer.parseInt(entry.getKey().split(":")[1]);
 				System.out.println("Trying server: " + entry.getKey());
+				if (keyInRange(key, entry.getValue().split(",")[0], entry.getValue().split(",")[1])) {
+					arr.add(entry.getKey());
+				}
+			}
+
+			Collections.shuffle(arr);
+			System.out.println(arr);
+
+			for (String entry : arr) {
 				try {
+					this.address = entry.split(":")[0];
+					this.port = Integer.parseInt(entry.split(":")[1]);
 					connect();
-					System.out.println("Connected to: " + entry.getKey());
+					System.out.println("Connected to: " + entry);
 					IKVMessage message = get(key);
-					System.out.println("Got message from:" + entry.getKey() + ":" + message.getMessage());
+					System.out.println("Got message from:" + entry + ":" + message.getMessage());
+					// Ask for updated metadata
+					message = new KVMessage(IKVMessage.StatusType.keyrange_read);
+					sendMessage(message);
+					message = receiveMessage();
+
+					HashMap<String, String> newHashMap = new HashMap<>();
+					String metaString = message.getKey();
+					String[] tokens = metaString.split(";");
+
+					for (String token : tokens) {
+						String[] tokenSplit = token.split(",");
+						newHashMap.put(tokenSplit[2], tokenSplit[0] + "," + tokenSplit[1]);
+					}
+
+					this.read_metadata = newHashMap;
 					return message;
 				} catch (Exception f) { // Server is offline
-					continue;
+					System.out.println("DELETE retry");
+					f.printStackTrace();
+					this.read_metadata.remove(entry);
 				}
 			}
 			throw new Exception();
@@ -170,58 +199,83 @@ public class KVStore implements KVCommInterface {
 	@Override
 	public IKVMessage get(String key) throws Exception {
 		IKVMessage message = new KVMessage(IKVMessage.StatusType.get, key);
+		try {
+			if (this.read_metadata == null) {
+				sendMessage(message);
+				message = receiveMessage();
+			} else {
+				ArrayList<String> arr = new ArrayList();
+				disconnect();
+				for (Map.Entry<String, String> entry : this.read_metadata.entrySet()) { // Try every server that client knows
+//					this.address = entry.getKey().split(":")[0];
+//					this.port = Integer.parseInt(entry.getKey().split(":")[1]);
+//					System.out.println("Trying server: " + entry.getKey());
+					if (keyInRange(key, entry.getValue().split(",")[0], entry.getValue().split(",")[1])) {
+						arr.add(entry.getKey());
+					}
+				}
 
-		if (this.metadata.isEmpty() || keyInRange(key,
-				this.metadata.get(address+":"+port).split(",")[0],
-				this.metadata.get(address+":"+port).split(",")[1]))
-		{ // Client doesn't know about anyone else, try the server it is connected to OR Client has metadata and this server is responsible
-			sendMessage(message);
-		} else // Client is not responsible according to current metadata. Disconnect from current server, connect to responsible server and retry
-		{
-			String responsibleIpAndPort = findResponsibleServer(key);
-			String[] splitResponsible = responsibleIpAndPort.split(":");
-			String respIp = splitResponsible[0];
-			int respPort = Integer.parseInt(splitResponsible[1]);
-			this.address = respIp;
-			this.port = respPort;
-			disconnect();
-			try {
-				connect();
-			} catch (Exception e) {
-				updateMetadataRemove(this.address + ":" + this.port);
+				Collections.shuffle(arr);
+				System.out.println(arr);
+
+				boolean found = false;
+
+				for (String entry : arr) {
+					try {
+						this.address = entry.split(":")[0];
+						this.port = Integer.parseInt(entry.split(":")[1]);
+						connect();
+						System.out.println("Connected to: " + entry);
+						sendMessage(new KVMessage(IKVMessage.StatusType.get, key));
+						IKVMessage loop_message = receiveMessage();
+						System.out.println("Got message from:" + entry + ":" + loop_message.getMessage());
+						found = true;
+						// Ask for updated metadata
+						keyRangeRead();
+						message = loop_message;
+						if (message.getStatus() == IKVMessage.StatusType.get_success || message.getStatus() == IKVMessage.StatusType.get_error) {
+							break;
+						}
+					} catch (Exception f) { // Server is offline
+						System.out.println("DELETE");
+						this.read_metadata.remove(entry);
+					}
+				}
+				if (found == false) {
+					throw new Exception();
+				}
+			}
+//			sendMessage(message);
+//			message = receiveMessage();
+			if (message.getStatus() == IKVMessage.StatusType.get_success || message.getStatus() == IKVMessage.StatusType.get_error) {
+				return message;
+			}
+			else if (message.getStatus() == IKVMessage.StatusType.server_not_responsible) {
+				message = new KVMessage(IKVMessage.StatusType.keyrange_read);
+				sendMessage(message);
+				message = receiveMessage();
+
+				HashMap<String, String> newHashMap = new HashMap<>();
+				String metaString = message.getKey();
+				String[] tokens = metaString.split(";");
+
+				for (String token : tokens) {
+					String[] tokenSplit = token.split(",");
+					newHashMap.put(tokenSplit[2], tokenSplit[0] + "," + tokenSplit[1]);
+				}
+
+				this.read_metadata = newHashMap;
 				return retryGet(key);
 			}
-			return retryGet(key);
-		}
-
-		try {
-			message = receiveMessage();
-		} catch (Exception e) {
-			System.out.println("SERVER DOWN, TRY DIFF SERVER");
-			updateMetadataRemove(this.address + ":" + this.port);
-			return retryGet(key);
-		}
-
-		if (message.getStatus() == IKVMessage.StatusType.server_not_responsible) // Currently connected server is not responsible
-		{
-			// Send KEYRANGE request for metadata
-			sendMessage(new KVMessage(IKVMessage.StatusType.keyrange));
-			IKVMessage metaMessage = receiveMessage();
-			// REPLACE METADATA AND RETRY
-			HashMap<String, String> newHashMap = new HashMap<>();
-			String metaString = metaMessage.getKey();
-			String[] tokens = metaString.split(";");
-
-			for (String token : tokens)
-			{
-				String[] tokenSplit = token.split(",");
-				newHashMap.put(tokenSplit[2], tokenSplit[0] + "," + tokenSplit[1]);
+		} catch (IOException e) {
+			if (read_metadata == null) { // connected server is dead and read_metadata is null
+				throw new IOException();
 			}
-			// SET NEW METADATA AND RETRY GET
-			this.metadata = newHashMap;
-			return retryGet(key);
+			else {
+				return retryGet(key);
+			}
 		}
-		return message;
+		return new KVMessage(IKVMessage.StatusType.failed);
 	}
 
 	private IKVMessage retryKeyrange() throws Exception {
@@ -310,8 +364,8 @@ public class KVStore implements KVCommInterface {
 
 	public void updateMetadataRemove(String ipAndPort) {
 		String[] myRange = this.metadata.get(ipAndPort).split(",");
-		String myToHash = myRange[0];
-		String myFromHash = myRange[1];
+		String myLower = myRange[0];
+		String myUpper = myRange[1];
 		this.metadata.remove(ipAndPort);
 		String fromHash = "";
 		String toHash = "";
@@ -321,13 +375,31 @@ public class KVStore implements KVCommInterface {
 			toHash = range[0];
 			fromHash = range[1];
 			entryIp = entry.getKey();
-			if (toHash.equals(myFromHash)) {
-				toHash = myToHash;
+			if (toHash.equals(myUpper)) {
+				toHash = myLower;
 				break;
 			}
 		}
 
 		this.metadata.replace(entryIp, toHash + "," + fromHash);
+	}
+
+	public IKVMessage keyRangeRead() throws IOException {
+		IKVMessage message = new KVMessage(IKVMessage.StatusType.keyrange_read);
+		sendMessage(message);
+		message = receiveMessage();
+		HashMap<String, String> newHashMap = new HashMap<>();
+		String metaString = message.getKey();
+		String[] tokens = metaString.split(";");
+
+		for (String token : tokens) {
+			String[] tokenSplit = token.split(",");
+			newHashMap.put(tokenSplit[2], tokenSplit[0] + "," + tokenSplit[1]);
+		}
+
+		this.read_metadata = newHashMap;
+
+		return message;
 	}
 
 	/**
