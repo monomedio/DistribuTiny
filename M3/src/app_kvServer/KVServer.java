@@ -340,6 +340,7 @@ public class KVServer implements IKVServer {
             res.append(finalLower);
             res.append(",");
             res.append(entry1.getValue().split(",")[1]);
+            res.append(",");
             res.append(entry1.getKey());
             res.append(";");
         }
