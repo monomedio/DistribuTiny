@@ -256,7 +256,7 @@ public class KVServer implements IKVServer {
                 for (int i = 0; i < this.replicas.length; i++) {
                     String[] ipAndPort = this.replicas[i].split(":");
                     internalStore.connect(ipAndPort[0], Integer.parseInt(ipAndPort[1]));
-                    internalStore.sendMessage(new KVMessage(IKVMessage.StatusType.REPLICATE, data));
+                    internalStore.sendMessage(new KVMessage(IKVMessage.StatusType.replicate, data));
 //                IKVMessage msg = internalStore.receiveMessage();
 //
 //                if (msg.getStatus() != IKVMessage.StatusType.PUT_SUCCESS || msg.getStatus() != IKVMessage.StatusType.PUT_UPDATE) {
@@ -297,7 +297,55 @@ public class KVServer implements IKVServer {
         return res.toString();
     }
 
+    public String metadataToStringRead() {
+        StringBuilder res = new StringBuilder();
+        for (Map.Entry<String, String> entry1: this.metadata.entrySet()) {
+            String[] replicaIps = new String[2];
+            String[] coordIps = new String[2];
+            String secondUpper = null;
+            String secondLower = null;
+            String finalLower = null;
+            for (Map.Entry<String, String> entry : this.metadata.entrySet()) {
+                //System.out.println(entry.getKey() + "vs" + this.getHostname());
+                if (Objects.equals(entry.getKey(), this.getHostname() + ":" + this.getPort())) {
+                    continue;
+                }
+                String[] range = entry.getValue().split(",");
+                if (Objects.equals(this.upperRange, range[0])) {
+                    replicaIps[0] = entry.getKey();
+                    secondUpper = range[1];
+                }
+                if (Objects.equals(this.lowerRange, range[1])) {
+                    coordIps[0] = entry.getKey();
+                    secondLower = range[0];
+                }
+            }
 
+            for (Map.Entry<String, String> entry : this.metadata.entrySet()) {
+                //System.out.println(entry.getKey() + "vs" + this.getHostname());
+                if (Objects.equals(entry.getKey(), this.getHostname() + ":" + this.getPort())) {
+                    continue;
+                }
+                String[] range = entry.getValue().split(",");
+                if (Objects.equals(secondUpper, range[0])) {
+                    replicaIps[1] = entry.getKey();
+                }
+
+                if (Objects.equals(secondLower, range[1])) {
+                    coordIps[1] = entry.getKey();
+                    // Reusing variable to keep extended range
+                    finalLower = range[0];
+                }
+            }
+            res.append(finalLower);
+            res.append(",");
+            res.append(entry1.getValue().split(",")[1]);
+            res.append(entry1.getKey());
+            res.append(";");
+        }
+        res.deleteCharAt(res.length() - 1);
+        return res.toString();
+    }
     public boolean setReplicas() {
         //TODO: Still needs to be tested properly for edge cases
         logger.info("Trying to assign replicas");

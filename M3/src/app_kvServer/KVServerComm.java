@@ -100,26 +100,26 @@ public class KVServerComm implements Runnable {
 		boolean keyExists = kvServer.inCache(msg.getKey()) || kvServer.inStorage(msg.getKey());
 		if (!keyExists && msg.getValue().equals("null")) {
 			logger.debug("Trying to DELETE for non-existent replica:" + msg.getKey());
-			return new KVMessage(IKVMessage.StatusType.DELETE_ERROR, msg.getKey());
+			return new KVMessage(IKVMessage.StatusType.delete_error, msg.getKey());
 		}
 		boolean validDeletion = keyExists && (Objects.equals(msg.getValue(), "null"));
 		KVMessage res;
 		if (validDeletion) {
 			logger.debug("Trying to DELETE for replica:" + msg.getKey());
 			kvServer.deleteKV(msg.getKey());
-			return new KVMessage(KVMessage.StatusType.DELETE_SUCCESS, msg.getKey());
+			return new KVMessage(KVMessage.StatusType.delete_success, msg.getKey());
 		}
 
 		if (!keyExists) {
 			logger.debug("Trying to PUT replica: " + msg.getKey() + " with value: " + msg.getValue());
 			kvServer.putKV(msg.getKey(), msg.getValue(), false);
-			return new KVMessage(KVMessage.StatusType.PUT_SUCCESS,
+			return new KVMessage(KVMessage.StatusType.put_success,
 					msg.getKey(), msg.getValue());
 		}
 
 		logger.debug("Trying to PUT_UPDATE for replica: " + msg.getKey() + " with value: " + msg.getValue());
 		kvServer.putKV(msg.getKey(), msg.getValue(), false);
-		res = new KVMessage(KVMessage.StatusType.PUT_UPDATE,
+		res = new KVMessage(KVMessage.StatusType.put_update,
 				msg.getKey(), msg.getValue());
 		return res;
 
@@ -128,75 +128,77 @@ public class KVServerComm implements Runnable {
 
 		if (kvServer.isWriteLocked()) {
 			logger.info("Server is currently write locked");
-			return new KVMessage(IKVMessage.StatusType.SERVER_WRITE_LOCK, "error");
+			return new KVMessage(IKVMessage.StatusType.server_write_lock, "error");
 		}
 		boolean keyExists = kvServer.inCache(msg.getKey()) || kvServer.inStorage(msg.getKey());
 		if (!keyExists && msg.getValue().equals("null")) {
 			logger.debug("Trying to DELETE for non-existent key:" + msg.getKey());
-			return new KVMessage(IKVMessage.StatusType.DELETE_ERROR, msg.getKey());
+			return new KVMessage(IKVMessage.StatusType.delete_error, msg.getKey());
 		}
 		boolean validDeletion = keyExists && (Objects.equals(msg.getValue(), "null"));
 		KVMessage res;
 		if (validDeletion) {
 			logger.debug("Trying to DELETE for key:" + msg.getKey());
 			kvServer.deleteKV(msg.getKey());
-			return new KVMessage(KVMessage.StatusType.DELETE_SUCCESS, msg.getKey());
+			return new KVMessage(KVMessage.StatusType.delete_success, msg.getKey());
 		}
 
 		if (!keyExists) {
 			logger.debug("Trying to PUT key: " + msg.getKey() + " with value: " + msg.getValue());
 			kvServer.putKV(msg.getKey(), msg.getValue(), true);
-			return new KVMessage(KVMessage.StatusType.PUT_SUCCESS,
+			return new KVMessage(KVMessage.StatusType.put_success,
 					msg.getKey(), msg.getValue());
 		}
 
 		logger.debug("Trying to PUT_UPDATE for key: " + msg.getKey() + " with value: " + msg.getValue());
 		kvServer.putKV(msg.getKey(), msg.getValue(), true);
-		res = new KVMessage(KVMessage.StatusType.PUT_UPDATE,
+		res = new KVMessage(KVMessage.StatusType.put_update,
 				msg.getKey(), msg.getValue());
 		return res;
 
 	}
 	private KVMessage handleMessage(KVMessage msg) throws IOException {
 		KVMessage res;
-		if (msg.getStatus() != IKVMessage.StatusType.REPLICATE && kvServer.isStopped()) {
-			return res = new KVMessage(IKVMessage.StatusType.SERVER_STOPPED, "error");
+		if (msg.getStatus() != IKVMessage.StatusType.replicate && kvServer.isStopped()) {
+			return res = new KVMessage(IKVMessage.StatusType.server_stopped, "error");
 		}
 		boolean keyExists;
-		if (msg.getKey() != null && msg.getKey().length() > 10 && msg.getStatus() != IKVMessage.StatusType.REPLICATE) {
+		if (msg.getKey() != null && msg.getKey().length() > 10 && msg.getStatus() != IKVMessage.StatusType.replicate) {
 			logger.info("Key (" + msg.getKey().length() +") too long");
-			return res = new KVMessage(IKVMessage.StatusType.FAILED, "Key too long!");
+			return res = new KVMessage(IKVMessage.StatusType.failed, "Key too long!");
 		}
 
 		if (msg.getValue() != null && msg.getValue().length() > 60000) {
 			logger.info("Value (" + msg.getValue().length() +" too long\"");
-			return res = new KVMessage(IKVMessage.StatusType.FAILED, "Value too long");
+			return res = new KVMessage(IKVMessage.StatusType.failed, "Value too long");
 		}
 		// TODO: send metadata to client when SERVER_NOT_RESPONSIBLE
-		if ((msg.getStatus() == IKVMessage.StatusType.GET || msg.getStatus() == IKVMessage.StatusType.PUT) && !kvServer.keyInRange(msg.getKey())) {
+		if ((msg.getStatus() == IKVMessage.StatusType.get || msg.getStatus() == IKVMessage.StatusType.put) && !kvServer.keyInRange(msg.getKey())) {
 			logger.info("KVServer not responsible for this key:" + msg.getKey());
-			return res = new KVMessage(IKVMessage.StatusType.SERVER_NOT_RESPONSIBLE, "failed");
+			return res = new KVMessage(IKVMessage.StatusType.server_not_responsible);
 		}
 		try{
 			switch (msg.getStatus()) {
-				case GET:
+				case get:
 					logger.debug("Trying to GET " + msg.getKey());
 					keyExists = kvServer.inCache(msg.getKey()) || kvServer.inStorage(msg.getKey());
 					if (keyExists) {
 						logger.debug("Key found: "  + msg.getKey());
-						res = new KVMessage(KVMessage.StatusType.GET_SUCCESS, msg.getKey(), kvServer.getKV(msg.getKey()));
+						res = new KVMessage(KVMessage.StatusType.get_success, msg.getKey(), kvServer.getKV(msg.getKey()));
 						return res;
 					}
 					logger.debug("Key not found: " + msg.getKey());
-					res = new KVMessage(KVMessage.StatusType.GET_ERROR, msg.getKey());
+					res = new KVMessage(KVMessage.StatusType.get_error, msg.getKey());
 					return res;
-				case PUT:
+				case keyrange_read:
+					res = new KVMessage(IKVMessage.StatusType.keyrange_read_success, kvServer.metadataToStringRead());
+				case put:
 					return handlePUTMessage(msg);
-				case KEYRANGE:
-					return res = new KVMessage(IKVMessage.StatusType.KEYRANGE_SUCCESS, kvServer.metadataToString());
-				case PUT_R:
+				case keyrange:
+					return res = new KVMessage(IKVMessage.StatusType.keyrange_success, kvServer.metadataToString());
+				case put_r:
 					return handlePUT_RMessage(msg);
-				case REPLICATE:
+				case replicate:
 					String data = msg.getKey();
 					if (data.length() == 0) {
 //						sendMessage(new KVMessage(IKVMessage.StatusType.TR_SUCC, "success"));
@@ -218,7 +220,7 @@ public class KVServerComm implements Runnable {
 					}
 					return null;
 				default:
-					return res = new KVMessage(IKVMessage.StatusType.FAILED, "Unknown request");
+					return res = new KVMessage(IKVMessage.StatusType.failed, "Unknown request");
 				}
 		} catch (Exception e) {
 			//TODO: Can client handle error messages?
@@ -226,11 +228,11 @@ public class KVServerComm implements Runnable {
 
 			switch (e.getMessage()) {
 				case "PUT_ERROR":
-					return res = new KVMessage(IKVMessage.StatusType.PUT_ERROR, msg.getKey(), msg.getValue());
+					return res = new KVMessage(IKVMessage.StatusType.put_error, msg.getKey(), msg.getValue());
 				case "GET_ERROR":
-					return res = new KVMessage(IKVMessage.StatusType.GET_ERROR, msg.getKey());
+					return res = new KVMessage(IKVMessage.StatusType.get_error, msg.getKey());
 			}
-			return res = new KVMessage(IKVMessage.StatusType.FAILED, "An IO-error occurred at the server");
+			return res = new KVMessage(IKVMessage.StatusType.failed, "An IO-error occurred at the server");
 		}
 
 	}
@@ -314,7 +316,7 @@ public class KVServerComm implements Runnable {
 		try {
 			msg = new KVMessage(msgBytes);
 		} catch (Exception e) {
-			msg = new KVMessage(KVMessage.StatusType.FAILED, "Error");
+			msg = new KVMessage(KVMessage.StatusType.failed, "Error");
 		}
 		logger.info("RECEIVE \t<" 
 				+ clientSocket.getInetAddress().getHostAddress() + ":" 

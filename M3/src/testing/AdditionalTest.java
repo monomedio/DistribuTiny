@@ -50,7 +50,7 @@ public class AdditionalTest extends TestCase {
 			ex = e;
 		}
 
-		assertTrue(ex == null && response.getStatus() == IKVMessage.StatusType.FAILED);
+		assertTrue(ex == null && response.getStatus() == IKVMessage.StatusType.failed);
 
 	}
 
@@ -70,7 +70,7 @@ public class AdditionalTest extends TestCase {
 			ex = e;
 		}
 
-		assertTrue(ex == null && response.getStatus() == IKVMessage.StatusType.FAILED);
+		assertTrue(ex == null && response.getStatus() == IKVMessage.StatusType.failed);
 
 	}
 
@@ -89,7 +89,7 @@ public class AdditionalTest extends TestCase {
 			ex = e;
 		}
 
-		assertTrue(ex == null && response.getStatus() == IKVMessage.StatusType.GET_ERROR);
+		assertTrue(ex == null && response.getStatus() == IKVMessage.StatusType.get_error);
 	}
 
 	@Test
@@ -107,7 +107,7 @@ public class AdditionalTest extends TestCase {
 		}
 
 		assertTrue(ex == null
-				&& response.getStatus() == IKVMessage.StatusType.GET_SUCCESS && response.getValue().equals(value));
+				&& response.getStatus() == IKVMessage.StatusType.get_success && response.getValue().equals(value));
 	}
 
 	@Test
@@ -126,7 +126,7 @@ public class AdditionalTest extends TestCase {
 		}
 
 		assertTrue(ex == null
-				&& response.getStatus() == IKVMessage.StatusType.GET_SUCCESS && response.getValue().equals("v3-update"));
+				&& response.getStatus() == IKVMessage.StatusType.get_success && response.getValue().equals("v3-update"));
 	}
 
 	@Test
@@ -146,7 +146,7 @@ public class AdditionalTest extends TestCase {
 		}
 
 		assertTrue(ex == null
-				&& response.getStatus() == IKVMessage.StatusType.GET_SUCCESS && response.getValue().equals("v4-update"));
+				&& response.getStatus() == IKVMessage.StatusType.get_success && response.getValue().equals("v4-update"));
 	}
 	@Test
 	public void testTwoClientsDeleteGet() {
@@ -164,23 +164,23 @@ public class AdditionalTest extends TestCase {
 		}
 
 		assertTrue(ex == null
-				&& response.getStatus() == IKVMessage.StatusType.GET_ERROR);
+				&& response.getStatus() == IKVMessage.StatusType.get_error);
 	}
 
 	@Test
 	public void testThreeAryConstructor() {
-		kvMessage = new KVMessage(IKVMessage.StatusType.GET, "key", "value");
+		kvMessage = new KVMessage(IKVMessage.StatusType.get, "key", "value");
 		assertTrue(kvMessage.getMessage().equals("GET key value\r\n")
-				&& kvMessage.getStatus().equals(IKVMessage.StatusType.GET)
+				&& kvMessage.getStatus().equals(IKVMessage.StatusType.get)
 				&& kvMessage.getKey().equals("key")
 				&& kvMessage.getValue().equals("value"));
 	}
 
 	@Test
 	public void testBinaryConstructor() {
-		kvMessage = new KVMessage(IKVMessage.StatusType.GET, "key");
+		kvMessage = new KVMessage(IKVMessage.StatusType.get, "key");
 		assertTrue(kvMessage.getMessage().equals("GET key\r\n")
-				&& kvMessage.getStatus().equals(IKVMessage.StatusType.GET)
+				&& kvMessage.getStatus().equals(IKVMessage.StatusType.get)
 				&& kvMessage.getKey().equals("key"));
 	}
 
@@ -189,7 +189,7 @@ public class AdditionalTest extends TestCase {
 		byte[] msgArray = {80, 85, 84, 32, 104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100};
 		kvMessage = new KVMessage(msgArray);
 		assertTrue(kvMessage.getMessage().equals("PUT hello world\r\n")
-				&& kvMessage.getStatus().equals(IKVMessage.StatusType.PUT)
+				&& kvMessage.getStatus().equals(IKVMessage.StatusType.put)
 				&& kvMessage.getKey().equals("hello")
 				&& kvMessage.getValue().equals("world"));
 	}

@@ -66,7 +66,7 @@ public class ECS implements IECS {
         ArrayList<String> connectionsToDelete = new ArrayList<>();
         // send to metadata to each server
         for (Map.Entry<String, ECSComm> entry : this.connections.entrySet()) {
-            entry.getValue().sendMessage(new KVMessage(IKVMessage.StatusType.META_UPDATE, res));
+            entry.getValue().sendMessage(new KVMessage(IKVMessage.StatusType.meta_update, res));
             if (!this.metadata.containsKey(entry.getKey())) {
                 connectionsToDelete.add(entry.getKey());
             }
@@ -234,7 +234,7 @@ public class ECS implements IECS {
         ECSComm successor = updateMetadataRemove(ipAndPort);
         if (successor == null) {
             // Last server trying to shut down
-            this.connections.get(ipAndPort).sendMessage(new KVMessage(IKVMessage.StatusType.LAST_ONE, "goodnight"));
+            this.connections.get(ipAndPort).sendMessage(new KVMessage(IKVMessage.StatusType.last_one, "goodnight"));
             this.connections.remove(ipAndPort);
             return;
         }

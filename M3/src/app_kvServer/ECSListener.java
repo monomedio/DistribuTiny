@@ -54,7 +54,7 @@ public class ECSListener implements Runnable {
         kvServer.setStatus("WRITE_LOCKED");
         try {
             String data = dataToString(kvServer.exportData());
-            sendMessage(new KVMessage(IKVMessage.StatusType.SHUTDOWN, data));
+            sendMessage(new KVMessage(IKVMessage.StatusType.shutdown, data));
         } catch (IOException e) {
             logger.error("Error occurred while trying to send a shutdown message to ECS");
         }
@@ -131,7 +131,7 @@ public class ECSListener implements Runnable {
         try {
             msg = new KVMessage(msgBytes);
         } catch (Exception e) {
-            msg = new KVMessage(KVMessage.StatusType.FAILED, "Error");
+            msg = new KVMessage(KVMessage.StatusType.failed, "Error");
         }
         logger.info("RECEIVE \t<"
                 + socket.getInetAddress().getHostAddress() + ":"
@@ -145,7 +145,7 @@ public class ECSListener implements Runnable {
         logger.info("Listener started on " + socket.getLocalPort());
         if (socket != null) {
             try {
-                sendMessage(new KVMessage(IKVMessage.StatusType.SERV_INIT, kvServer.getHostname(), String.valueOf(kvServer.getPort())));
+                sendMessage(new KVMessage(IKVMessage.StatusType.serv_init, kvServer.getHostname(), String.valueOf(kvServer.getPort())));
             } catch (IOException e) {
                 logger.error("Could not communicate with ECS");
             }
@@ -153,7 +153,7 @@ public class ECSListener implements Runnable {
                 try {
                     KVMessage latestMsg = receiveMessage();
                     handleMessage(latestMsg);
-                    if (latestMsg.getStatus() == IKVMessage.StatusType.FAILED) {
+                    if (latestMsg.getStatus() == IKVMessage.StatusType.failed) {
                         this.running = false;
                         kvServer.close();
                     }
@@ -189,36 +189,36 @@ public class ECSListener implements Runnable {
     public void handleMessage(KVMessage message) throws IOException {
         String data;
         switch (message.getStatus()) {
-            case TR_REQ:
+            case tr_req:
                 kvServer.setStatus("WRITE_LOCKED");
                 data = dataToString(kvServer.exportData(message.getKey(), message.getValue()));
                 if (data.length() == 0) {
-                    sendMessage(new KVMessage(IKVMessage.StatusType.TR_RES, data));
+                    sendMessage(new KVMessage(IKVMessage.StatusType.tr_res, data));
                     break;
                 }
                 data = data.substring(0, data.length() - 1);
-                sendMessage(new KVMessage(IKVMessage.StatusType.TR_RES, data));
+                sendMessage(new KVMessage(IKVMessage.StatusType.tr_res, data));
                 break;
-            case TR_INIT:
+            case tr_init:
                 data = message.getKey();
                 if (data.length() == 0) {
-                    sendMessage(new KVMessage(IKVMessage.StatusType.TR_SUCC, "success"));
+                    sendMessage(new KVMessage(IKVMessage.StatusType.tr_succ, "success"));
                     break;
                 }
                 String[] keyVals = data.split(";");
                 if (keyVals.length % 2 != 0){
                     logger.error("Data transfer failed. Missing key or value");
-                    sendMessage(new KVMessage(IKVMessage.StatusType.FAILED, "failed"));
+                    sendMessage(new KVMessage(IKVMessage.StatusType.failed, "failed"));
                     break;
                 }
                 if (kvServer.importData(keyVals)) {
-                    sendMessage(new KVMessage(IKVMessage.StatusType.TR_SUCC, "success"));
+                    sendMessage(new KVMessage(IKVMessage.StatusType.tr_succ, "success"));
                 } else {
                     logger.error("Couldn't store key-values at server");
-                    sendMessage(new KVMessage(IKVMessage.StatusType.FAILED, "failed"));
+                    sendMessage(new KVMessage(IKVMessage.StatusType.failed, "failed"));
                 }
                 break;
-            case META_UPDATE:
+            case meta_update:
                 data = message.getKey();
                 String[] metadata = data.split(";");
                 HashMap<String, String> metadataMap = new HashMap<>();
@@ -245,7 +245,7 @@ public class ECSListener implements Runnable {
                     kvServer.setStatus("ACTIVE");
                 }
                 break;
-            case LAST_ONE:
+            case last_one:
                 this.socket.close();
                 kvServer.close();
 

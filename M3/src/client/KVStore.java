@@ -88,7 +88,7 @@ public class KVStore implements KVCommInterface {
 
 	@Override
 	public IKVMessage put(String key, String value) throws Exception {
-		IKVMessage message = new KVMessage(IKVMessage.StatusType.PUT, key, value);
+		IKVMessage message = new KVMessage(IKVMessage.StatusType.put, key, value);
 
 		if (this.metadata.isEmpty() || keyInRange(key,
 				this.metadata.get(address+":"+port).split(",")[0],
@@ -121,10 +121,10 @@ public class KVStore implements KVCommInterface {
 			return retryPut(key, value);
 		}
 
-		if (message.getStatus() == IKVMessage.StatusType.SERVER_NOT_RESPONSIBLE) // Currently connected server is not responsible
+		if (message.getStatus() == IKVMessage.StatusType.server_not_responsible) // Currently connected server is not responsible
 		{
 			// Send KEYRANGE request for metadata
-			sendMessage(new KVMessage(IKVMessage.StatusType.KEYRANGE));
+			sendMessage(new KVMessage(IKVMessage.StatusType.keyrange));
 			IKVMessage metaMessage = receiveMessage();
 			// REPLACE METADATA AND RETRY
 			HashMap<String, String> newHashMap = new HashMap<>();
@@ -169,7 +169,7 @@ public class KVStore implements KVCommInterface {
 
 	@Override
 	public IKVMessage get(String key) throws Exception {
-		IKVMessage message = new KVMessage(IKVMessage.StatusType.GET, key);
+		IKVMessage message = new KVMessage(IKVMessage.StatusType.get, key);
 
 		if (this.metadata.isEmpty() || keyInRange(key,
 				this.metadata.get(address+":"+port).split(",")[0],
@@ -202,10 +202,10 @@ public class KVStore implements KVCommInterface {
 			return retryGet(key);
 		}
 
-		if (message.getStatus() == IKVMessage.StatusType.SERVER_NOT_RESPONSIBLE) // Currently connected server is not responsible
+		if (message.getStatus() == IKVMessage.StatusType.server_not_responsible) // Currently connected server is not responsible
 		{
 			// Send KEYRANGE request for metadata
-			sendMessage(new KVMessage(IKVMessage.StatusType.KEYRANGE));
+			sendMessage(new KVMessage(IKVMessage.StatusType.keyrange));
 			IKVMessage metaMessage = receiveMessage();
 			// REPLACE METADATA AND RETRY
 			HashMap<String, String> newHashMap = new HashMap<>();
@@ -249,7 +249,7 @@ public class KVStore implements KVCommInterface {
 	}
 
 	public IKVMessage keyRange() throws Exception {
-		IKVMessage message = new KVMessage(IKVMessage.StatusType.KEYRANGE);
+		IKVMessage message = new KVMessage(IKVMessage.StatusType.keyrange);
 
 		sendMessage(message); // Send keyrange message to the currently connected server
 
@@ -261,7 +261,7 @@ public class KVStore implements KVCommInterface {
 			return retryKeyrange();
 		}
 
-		if (message.getStatus() == IKVMessage.StatusType.KEYRANGE_SUCCESS) { //update metadata if successful
+		if (message.getStatus() == IKVMessage.StatusType.keyrange_success) { //update metadata if successful
 			// REPLACE METADATA
 			HashMap<String, String> newHashMap = new HashMap<>();
 			String metaString = message.getKey();

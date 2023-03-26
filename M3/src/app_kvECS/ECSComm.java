@@ -64,7 +64,7 @@ public class ECSComm implements Runnable {
 					KVMessage handledMessage = handleMessage(latestMsg);
 					// TODO: change info to debug
 					logger.info("Metadata after message handling: " + ecs.metadataToString());
-					if (handledMessage != null && !handledMessage.getStatus().equals(IKVMessage.StatusType.FAILED)) {
+					if (handledMessage != null && !handledMessage.getStatus().equals(IKVMessage.StatusType.failed)) {
 						sendMessage(handledMessage);
 					}
 				/* connection either terminated by the client or lost due to 
@@ -102,7 +102,7 @@ public class ECSComm implements Runnable {
 
 		try{
 			switch (msg.getStatus()) {
-				case TR_RES:
+				case tr_res:
 					// Assuming key1;value1;key2;value2;key3;value3 etc.
 					String[] alternatingKV = msg.getKey().split(";");
 					String sampleKey = alternatingKV[0];
@@ -112,21 +112,21 @@ public class ECSComm implements Runnable {
 					ECSComm responsibleECSComm = this.ecs.getECSComm(responsibleIpPort);
 					responsibleECSComm.sendData(msg.getKey());
 					return null;
-				case TR_SUCC:
+				case tr_succ:
 					ecs.broadcastMetadata();
 					return null;
-				case SHUTDOWN:
+				case shutdown:
 					ecs.removeServer(this.getClientListenerIpPort(), msg.getKey());
 					return null;
 				default:
 					logger.info("Lost connection with server " + getClientListenerIpPort());
 					ecs.removeDeadServer(this.clientListenerIpPort);
-					return res = new KVMessage(IKVMessage.StatusType.FAILED, "Unknown request");
+					return res = new KVMessage(IKVMessage.StatusType.failed, "Unknown request");
 				}
 		} catch (Exception e) {
 			logger.debug(e);
 			e.printStackTrace();
-			return res = new KVMessage(IKVMessage.StatusType.FAILED, "An IO-error occurred at the server");
+			return res = new KVMessage(IKVMessage.StatusType.failed, "An IO-error occurred at the server");
 		}
 
 	}
@@ -210,7 +210,7 @@ public class ECSComm implements Runnable {
 		try {
 			msg = new KVMessage(msgBytes);
 		} catch (Exception e) {
-			msg = new KVMessage(KVMessage.StatusType.FAILED, "Error");
+			msg = new KVMessage(KVMessage.StatusType.failed, "Error");
 		}
 		logger.info("RECEIVE \t<" 
 				+ clientSocket.getInetAddress().getHostAddress() + ":" 
@@ -226,7 +226,7 @@ public class ECSComm implements Runnable {
 	 */
 	public void retrieveData(String range) throws IOException {
 		String[] bothRange = range.split(",");
-		sendMessage(new KVMessage(IKVMessage.StatusType.TR_REQ, bothRange[0], bothRange[1]));
+		sendMessage(new KVMessage(IKVMessage.StatusType.tr_req, bothRange[0], bothRange[1]));
 	}
 
 	/**
@@ -236,7 +236,7 @@ public class ECSComm implements Runnable {
 	 * @throws IOException
 	 */
 	public void sendData(String data) throws IOException {
-		sendMessage(new KVMessage(IKVMessage.StatusType.TR_INIT, data));
+		sendMessage(new KVMessage(IKVMessage.StatusType.tr_init, data));
 	}
 
 	public String getClientListenerIpPort() {

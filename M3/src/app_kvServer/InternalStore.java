@@ -1,6 +1,5 @@
 package app_kvServer;
 
-import client.KVCommInterface;
 import shared.messages.IKVMessage;
 
 import java.io.BufferedInputStream;
@@ -57,14 +56,14 @@ public class InternalStore {
     }
 
     public IKVMessage put(String key, String value) throws Exception {
-        IKVMessage message = new KVMessage(IKVMessage.StatusType.PUT_R, key, value);
+        IKVMessage message = new KVMessage(IKVMessage.StatusType.put_r, key, value);
         sendMessage(message);
         message = receiveMessage();
         return message;
     }
 
     public IKVMessage get(String key) throws Exception {
-        IKVMessage message = new KVMessage(IKVMessage.StatusType.GET_R, key);
+        IKVMessage message = new KVMessage(IKVMessage.StatusType.get_r, key);
         sendMessage(message);
         message = receiveMessage();
         return message;

@@ -3,30 +3,30 @@ package shared.messages;
 public interface IKVMessage {
 	
 	public enum StatusType {
-		GET, 			/* Get - request */
-		GET_ERROR, 		/* requested tuple (i.e. value) not found */
-		GET_SUCCESS, 	/* requested tuple (i.e. value) found */
-		PUT, 			/* Put - request */
-		PUT_SUCCESS, 	/* Put - request successful, tuple inserted */
-		PUT_UPDATE, 	/* Put - request successful, i.e. value updated */
-		PUT_ERROR, 		/* Put - request not successful */
-		DELETE_SUCCESS, /* Delete - request successful */
-		DELETE_ERROR, 	/* Delete - request not successful */
-		FAILED,			/* All other cases*/
-		SERVER_NOT_RESPONSIBLE, /* When key not in server range DO NOT RETURN ERROR, TRY RETRY */
-		SERVER_WRITE_LOCK, /* Can only serve get requests */
-		SERVER_STOPPED,  /* Server not bootstrapped by ECS yet */
-		KEYRANGE_SUCCESS, /* Message contains metadata */
-		TR_REQ, /* Initiating data transfer*/
-		TR_RES, /* Transfer data response */
-		TR_INIT, /* Initialize writing data into new server */
-		TR_SUCC, /* Successfully written data into new server*/
-		META_UPDATE, /* Update metadata */
-		SHUTDOWN, /*Sent by ECSListener when KVServer shuts down*/
-		LAST_ONE, /*Sent by ECS to listener when the server requesting shutdown is the last one*/
-		SERV_INIT, /* Message from initializing server containing its client listener IP and port as key and value respectively */
-		KEYRANGE,  /*Sent by client to request updated metadata from a KVServer*/
-		PUT_R, GET_R, REPLICATE,
+		get, 			/* GET - REQUEST */
+		get_error, 		/* REQUESTED TUPLE (I.E. VALUE) NOT FOUND */
+		get_success, 	/* REQUESTED TUPLE (I.E. VALUE) FOUND */
+		put, 			/* PUT - REQUEST */
+		put_success, 	/* PUT - REQUEST SUCCESSFUL, TUPLE INSERTED */
+		put_update, 	/* PUT - REQUEST SUCCESSFUL, I.E. VALUE UPDATED */
+		put_error, 		/* PUT - REQUEST NOT SUCCESSFUL */
+		delete_success, /* DELETE - REQUEST SUCCESSFUL */
+		delete_error, 	/* DELETE - REQUEST NOT SUCCESSFUL */
+		failed,			/* ALL OTHER CASES*/
+		server_not_responsible, /* WHEN KEY NOT IN SERVER RANGE DO NOT RETURN ERROR, TRY RETRY */
+		server_write_lock, /* CAN ONLY SERVE GET REQUESTS */
+		server_stopped,  /* SERVER NOT BOOTSTRAPPED BY ECS YET */
+		keyrange_success, /* MESSAGE CONTAINS METADATA */
+		tr_req, /* INITIATING DATA TRANSFER*/
+		tr_res, /* TRANSFER DATA RESPONSE */
+		tr_init, /* INITIALIZE WRITING DATA INTO NEW SERVER */
+		tr_succ, /* SUCCESSFULLY WRITTEN DATA INTO NEW SERVER*/
+		meta_update, /* UPDATE METADATA */
+		shutdown, /*SENT BY ECSLISTENER WHEN KVSERVER SHUTS DOWN*/
+		last_one, /*SENT BY ECS TO LISTENER WHEN THE SERVER REQUESTING SHUTDOWN IS THE LAST ONE*/
+		serv_init, /* MESSAGE FROM INITIALIZING SERVER CONTAINING ITS CLIENT LISTENER IP AND PORT AS KEY AND VALUE RESPECTIVELY */
+		keyrange,  /*SENT BY CLIENT TO REQUEST UPDATED METADATA FROM A KVSERVER*/
+		put_r, get_r, replicate, keyrange_read, keyrange_read_success,
 	}
 
 	/**

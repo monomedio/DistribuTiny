@@ -110,9 +110,9 @@ public class KVClient implements IKVClient {
                     try {
                         IKVMessage message = kvStore.put(tokens[1], tokens[2]);
                         IKVMessage.StatusType status = message.getStatus();
-                        if (status == IKVMessage.StatusType.PUT_ERROR || status == IKVMessage.StatusType.DELETE_ERROR ||
-                                status == IKVMessage.StatusType.FAILED || status == IKVMessage.StatusType.SERVER_WRITE_LOCK ||
-                                status == IKVMessage.StatusType.SERVER_STOPPED) {
+                        if (status == IKVMessage.StatusType.put_error || status == IKVMessage.StatusType.delete_error ||
+                                status == IKVMessage.StatusType.failed || status == IKVMessage.StatusType.server_write_lock ||
+                                status == IKVMessage.StatusType.server_stopped) {
                             printError(message.getMessage());
                         } else {
                             System.out.println(message.getMessage());
@@ -133,8 +133,8 @@ public class KVClient implements IKVClient {
                     try {
                         IKVMessage message = kvStore.get(tokens[1]);
                         IKVMessage.StatusType status = message.getStatus();
-                        if (status == IKVMessage.StatusType.FAILED || status == IKVMessage.StatusType.GET_ERROR ||
-                                status == IKVMessage.StatusType.SERVER_STOPPED) {
+                        if (status == IKVMessage.StatusType.failed || status == IKVMessage.StatusType.get_error ||
+                                status == IKVMessage.StatusType.server_stopped) {
                             printError(message.getMessage());
                         } else {
                             System.out.println(message.getMessage());
@@ -155,7 +155,7 @@ public class KVClient implements IKVClient {
                     try {
                         IKVMessage message = kvStore.keyRange();
                         IKVMessage.StatusType status = message.getStatus();
-                        if (status == IKVMessage.StatusType.SERVER_STOPPED || status == IKVMessage.StatusType.FAILED) {
+                        if (status == IKVMessage.StatusType.server_stopped || status == IKVMessage.StatusType.failed) {
                             printError(message.getMessage());
                         } else {
                             System.out.println(message.getMessage());
