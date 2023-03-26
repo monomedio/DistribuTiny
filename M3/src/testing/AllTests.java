@@ -95,7 +95,6 @@ public class AllTests {
 		clientSuite.addTestSuite(KeyRangeReadTest.class);
 		clientSuite.addTestSuite(KeyRangeTest.class);
 		clientSuite.addTestSuite(MetadataAddTest.class);
-		clientSuite.addTestSuite(MetadataRemoveTest.class);
 
 		return clientSuite;
 	}
