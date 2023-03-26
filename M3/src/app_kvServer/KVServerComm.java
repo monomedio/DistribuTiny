@@ -191,7 +191,7 @@ public class KVServerComm implements Runnable {
 					res = new KVMessage(KVMessage.StatusType.get_error, msg.getKey());
 					return res;
 				case keyrange_read:
-					res = new KVMessage(IKVMessage.StatusType.keyrange_read_success, kvServer.metadataToStringRead());
+					return res = new KVMessage(IKVMessage.StatusType.keyrange_read_success, kvServer.metadataToStringRead());
 				case put:
 					return handlePUTMessage(msg);
 				case keyrange:
