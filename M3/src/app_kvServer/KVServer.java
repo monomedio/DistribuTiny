@@ -321,54 +321,36 @@ public class KVServer implements IKVServer {
 
     public String metadataToStringRead() {
         StringBuilder res = new StringBuilder();
-        if (this.metadata.size() == 2) {
-            for (Map.Entry<String, String> entry: this.metadata.entrySet()) {
-                String[] range = entry.getValue().split(",");
-                res.append(range[1]);
-                res.append(",");
-                res.append(range[1]);
-                res.append(",");
-                res.append(entry.getKey());
-                res.append(";");
-            }
-            res.deleteCharAt(res.length() - 1);
-            return res.toString();
-        }
-        String finalLower = null;
-        for (Map.Entry<String, String> entry1: this.metadata.entrySet()) {
-            String[] currentRange = entry1.getValue().split(",");
-            String[] metaData = metadataToString().split(";");
-            String predecessorLower = null;
-            String predecessorIp = null;
-
-            for (String meta : metaData) {
-                String[] data = meta.split(",");
-                if (data[2].equals(entry1.getKey())) {
-                    continue;
-                }
-                if (data[1].equals(currentRange[0])) {
-                    predecessorLower = data[0];
-                    predecessorIp = data[2];
+        int num_entries = this.metadata.size();
+        for (Map.Entry<String, String> entry : this.metadata.entrySet()) { // for every entry in the metadata, find their extended lower range
+            String extendedLower = "";
+            String mainLower = entry.getValue().split(",")[0];
+            for (Map.Entry<String, String> entry1 : this.metadata.entrySet()) {
+                System.out.println(entry1.getValue().split(",")[1] + " comparing to " + mainLower);
+                if (entry1.getValue().split(",")[1].compareTo(mainLower) == 0) {
+                    System.out.println("IF1 passed");
+                    extendedLower = entry1.getValue().split(",")[0];
+                    break;
                 }
             }
-
-            for (String meta : metaData) {
-                String[] data = meta.split(",");
-                if (data[2].equals(predecessorIp)) {
-                    continue;
-                }
-                if (data[1].equals(predecessorLower)) {
-                    finalLower = data[0];
+            if (num_entries >= 3) {
+                for (Map.Entry<String, String> entry2 : this.metadata.entrySet()) {
+                    System.out.println(entry2.getValue().split(",")[1] + " comparing to " + extendedLower);
+                    if (entry2.getValue().split(",")[1].compareTo(extendedLower) == 0) {
+                        System.out.println("IF2 passed");
+                        extendedLower = entry2.getValue().split(",")[0];
+                        break;
+                    }
                 }
             }
-
-            res.append(finalLower);
+            res.append(extendedLower);
             res.append(",");
-            res.append(entry1.getValue().split(",")[1]);
+            res.append(entry.getValue().split(",")[1]);
             res.append(",");
-            res.append(entry1.getKey());
+            res.append(entry.getKey());
             res.append(";");
         }
+
         res.deleteCharAt(res.length() - 1);
         return res.toString();
     }
