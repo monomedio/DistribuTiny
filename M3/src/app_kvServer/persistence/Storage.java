@@ -86,7 +86,7 @@ public class Storage {
             if (fileEntry.isDirectory() || keyInRange(fileEntry.getName(), lowerRange, upperRange)) {
                 System.out.println("Ignoring directory");
             } else {
-                System.out.println(Files.readString(fileEntry.toPath()));
+//                System.out.println(Files.readString(fileEntry.toPath()));
                 map.put(fileEntry.getName(), Files.readString(fileEntry.toPath()));
             }
         }
@@ -100,7 +100,7 @@ public class Storage {
             if (fileEntry.isDirectory() || !keyInRange(fileEntry.getName(), lowerRange, upperRange)) {
                 System.out.println("Ignoring directory and replica");
             } else {
-                System.out.println(Files.readString(fileEntry.toPath()));
+//                System.out.println(Files.readString(fileEntry.toPath()));
                 map.put(fileEntry.getName(), Files.readString(fileEntry.toPath()));
             }
         }
@@ -112,11 +112,11 @@ public class Storage {
         HashMap<String, String> map = new HashMap<String, String>();
         for (final File fileEntry : folder.listFiles()) {
             boolean isReplica = keyInRange(fileEntry.getName(), extendedLowerRange, oldlowerRange);
-            System.out.println(fileEntry.getName() + " " + isReplica);
+//            System.out.println(fileEntry.getName() + " " + isReplica);
             if (fileEntry.isDirectory() || keyInRange(fileEntry.getName(), newlowerRange, newupperRange) || isReplica) {
                 System.out.println("Ignoring directory");
             } else {
-                System.out.println(Files.readString(fileEntry.toPath()));
+//                System.out.println(Files.readString(fileEntry.toPath()));
                 map.put(fileEntry.getName(), Files.readString(fileEntry.toPath()));
             }
         }
@@ -130,7 +130,7 @@ public class Storage {
             if (fileEntry.isDirectory()) {
                 System.out.println("Ignoring directory");
             } else {
-                System.out.println(Files.readString(fileEntry.toPath()));
+//                System.out.println(Files.readString(fileEntry.toPath()));
                 map.put(fileEntry.getName(), Files.readString(fileEntry.toPath()));
             }
         }

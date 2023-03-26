@@ -1,9 +1,10 @@
 package testing;
 
+import junit.framework.TestCase;
 import org.junit.Test;
 
 
-public class KeyRangeTest {
+public class KeyRangeTest extends TestCase {
 
     public boolean keyInRange(String hashedKey, String lowerRange, String upperRange){
         if (hashedKey.compareTo(lowerRange) == 0) {
@@ -21,7 +22,7 @@ public class KeyRangeTest {
     }
 
     @Test
-    public void no_wrap_around_hashed_eq_lower(){
+    public void test_no_wrap_around_hashed_eq_lower(){
         // Case 1: lowerRange is larger than upperRange
         String lowerRange = "c".repeat(32);
         String upperRange = "a".repeat(32);
@@ -32,7 +33,7 @@ public class KeyRangeTest {
     }
 
     @Test
-    public void no_wrap_around_hashed_btwn_lower_upper(){
+    public void test_no_wrap_around_hashed_btwn_lower_upper(){
         // Case 1: lowerRange is larger than upperRange
         String lowerRange = "c".repeat(32);
         String upperRange = "a".repeat(32);
@@ -43,7 +44,7 @@ public class KeyRangeTest {
     }
 
     @Test
-    public void no_wrap_around_hashed_eq_upper(){
+    public void test_no_wrap_around_hashed_eq_upper(){
         // Case 1: lowerRange is larger than upperRange
         String lowerRange = "c".repeat(32);
         String upperRange = "a".repeat(32);
@@ -54,7 +55,7 @@ public class KeyRangeTest {
     }
 
     @Test
-    public void no_wrap_around_hashed_less_upper(){
+    public void test_no_wrap_around_hashed_less_upper(){
         // Case 1: lowerRange is larger than upperRange
         String lowerRange = "c".repeat(32);
         String upperRange = "a".repeat(32);
@@ -65,7 +66,7 @@ public class KeyRangeTest {
     }
 
     @Test
-    public void no_wrap_around_hashed_greater_lower(){
+    public void test_no_wrap_around_hashed_greater_lower(){
         // Case 1: lowerRange is larger than upperRange
         String lowerRange = "c".repeat(32);
         String upperRange = "a".repeat(32);
@@ -77,7 +78,7 @@ public class KeyRangeTest {
 
 
     @Test
-    public void wrap_around_hashed_eq_lower(){
+    public void test_wrap_around_hashed_eq_lower(){
         // Case 2: lowerRange is smaller than upperRange (wrap around)
         String lowerRange = "b".repeat(32);
         String upperRange = "e".repeat(32);
@@ -88,7 +89,7 @@ public class KeyRangeTest {
     }
 
     @Test
-    public void wrap_around_hashed_less_lower_and_hashed_less_upper(){
+    public void test_wrap_around_hashed_less_lower_and_hashed_less_upper(){
         // Case 2: lowerRange is smaller than upperRange (wrap around)
         String lowerRange = "b".repeat(32);
         String upperRange = "e".repeat(32);
@@ -99,7 +100,7 @@ public class KeyRangeTest {
     }
 
     @Test
-    public void wrap_around_hashed_greater_lower_and_hashed_greater_upper(){
+    public void test_wrap_around_hashed_greater_lower_and_hashed_greater_upper(){
         // Case 2: lowerRange is smaller than upperRange (wrap around)
         String lowerRange = "b".repeat(32);
         String upperRange = "e".repeat(32);
@@ -110,7 +111,7 @@ public class KeyRangeTest {
     }
 
     @Test
-    public void wrap_around_hashed_eq_upper(){
+    public void test_wrap_around_hashed_eq_upper(){
         // Case 2: lowerRange is smaller than upperRange (wrap around)
         String lowerRange = "b".repeat(32);
         String upperRange = "e".repeat(32);
@@ -121,7 +122,7 @@ public class KeyRangeTest {
     }
 
     @Test
-    public void wrap_around_hashed_greater_lower_and_hashed_less_upper(){
+    public void test_wrap_around_hashed_greater_lower_and_hashed_less_upper(){
         // Case 2: lowerRange is smaller than upperRange (wrap around)
         String lowerRange = "b".repeat(32);
         String upperRange = "e".repeat(32);
@@ -132,7 +133,7 @@ public class KeyRangeTest {
     }
 
     @Test
-    public void hash_at_ends_hashed_less_upper(){
+    public void test_hash_at_ends_hashed_less_upper(){
         // hashedKey < upperRange (case with hashkey on other side of wrap around), NOT in range
         String lowerRange = "c".repeat(32);
         String upperRange = "0".repeat(32);
@@ -141,7 +142,7 @@ public class KeyRangeTest {
     }
 
     @Test
-    public void hash_at_ends_hashed_greater_lower(){
+    public void test_hash_at_ends_hashed_greater_lower(){
         // hashedKey > lowerRange (case with hashkey on other side of wrap around), NOT in range
         String lowerRange = "f".repeat(32);
         String upperRange = "d".repeat(32);

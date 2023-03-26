@@ -1,5 +1,6 @@
 package testing;
 
+import junit.framework.TestCase;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -7,7 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MetadataAddTest {
+public class MetadataAddTest extends TestCase {
 
     public List<Object> updateMetadataAdd(
             String hash, String ipAndPort, HashMap<String, String> metadata, HashMap<String, String> connections){
@@ -73,7 +74,7 @@ public class MetadataAddTest {
     }
 
     @Test
-    public void no_server_add_one(){
+    public void test_no_server_add_one(){
         // Case 1: no servers currently, add one (range should cover everything)
         String ipAndPort1 = "127.0.0.1:1";
         String hash1 = "8".repeat(32);
@@ -94,7 +95,7 @@ public class MetadataAddTest {
     }
 
     @Test
-    public void one_server_add_less_serv1(){
+    public void test_one_server_add_less_serv1(){
         // Case 2: one server currently, add one < server1 (server1 upper should == server2 lower and vice versa)
         String ipAndPort2 = "127.0.0.1:2";
         String hash2 = "80e7bcff701a97e48834556f72689200";
@@ -118,7 +119,7 @@ public class MetadataAddTest {
     }
 
     @Test
-    public void one_server_add_greater_serv1(){
+    public void test_one_server_add_greater_serv1(){
         //Case 3: one server currently, add one > server1 (server1 upper should == server2 lower and vice versa)
         String ipAndPort3 = "127.0.0.1:2";
         String hash3 = "80e7bcff701a97e48834556f72689200";
@@ -142,7 +143,7 @@ public class MetadataAddTest {
     }
 
     @Test
-    public void two_servers_add_w_serv1_succ(){
+    public void test_two_servers_add_w_serv1_succ(){
         // Case 4: two servers currently, add one with serv1 as successor, serv2 range stays the same
         String ipAndPort4 = "127.0.0.1:3";
         String hash4 = "80e7bcff701a97e48834556f72689200";
@@ -173,7 +174,7 @@ public class MetadataAddTest {
     }
 
     @Test
-    public void two_servers_add_new_across_wraparound(){
+    public void test_two_servers_add_new_across_wraparound(){
         // Case 5: two servers currently, add one with serv1 as successor, serv2 range stays the same
         // new server at f*32 so successor crosses the wrap around
         String ipAndPort5 = "127.0.0.1:3";
@@ -204,7 +205,7 @@ public class MetadataAddTest {
     }
 
     @Test
-    public void three_serves_add_one(){
+    public void test_three_serves_add_one(){
         // Case 6: three servers currently, add one
         String ipAndPort6 = "127.0.0.1:4";
         String hash6 = "b".repeat(32);

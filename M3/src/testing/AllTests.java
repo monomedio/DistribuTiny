@@ -74,6 +74,9 @@ public class AllTests {
 		clientSuite.addTestSuite(ConnectionTest.class);
 		clientSuite.addTestSuite(InteractionTest.class); 
 		clientSuite.addTestSuite(AdditionalTest.class);
+		clientSuite.addTestSuite(KeyRangeReadTest.class);
+		clientSuite.addTestSuite(KeyRangeTest.class);
+		clientSuite.addTestSuite(MetadataAddTest.class);
 
 		return clientSuite;
 	}

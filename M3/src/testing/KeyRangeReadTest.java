@@ -1,11 +1,12 @@
 package testing;
 
+import junit.framework.TestCase;
 import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class KeyRangeReadTest {
+public class KeyRangeReadTest extends TestCase {
 
     public String metadataToStringRead(HashMap<String, String> metadata) {
         StringBuilder res = new StringBuilder();
@@ -44,7 +45,7 @@ public class KeyRangeReadTest {
     }
 
     @Test
-    public void one_server(){
+    public void test_one_server(){
         HashMap<String, String> metadata = new HashMap<>();
         metadata.put("127.0.0.1:8010", "cee1458b33a5f7bd0675d63d94ddd2cd,cee1458b33a5f7bd0675d63d94ddd2cd");
         String res = metadataToStringRead(metadata);
@@ -52,7 +53,7 @@ public class KeyRangeReadTest {
     }
 
     @Test
-    public void two_servers() {
+    public void test_two_servers() {
         HashMap<String, String> metadata = new HashMap<>();
         metadata.put("127.0.0.1:8010", "8f2d5bc4bdd21ff5d5e7cafa3e3464d4,cee1458b33a5f7bd0675d63d94ddd2cd");
         metadata.put("127.0.0.1:8011", "cee1458b33a5f7bd0675d63d94ddd2cd,8f2d5bc4bdd21ff5d5e7cafa3e3464d4");
@@ -62,7 +63,7 @@ public class KeyRangeReadTest {
     }
 
     @Test
-    public void three_servers() {
+    public void test_three_servers() {
         HashMap<String, String> metadata = new HashMap<>();
         metadata.put("127.0.0.1:8010", "8f2d5bc4bdd21ff5d5e7cafa3e3464d4,cee1458b33a5f7bd0675d63d94ddd2cd");
         metadata.put("127.0.0.1:8011", "fd195faed9caee9f46eef6cad47f33b8,8f2d5bc4bdd21ff5d5e7cafa3e3464d4");
