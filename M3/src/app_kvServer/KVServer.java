@@ -345,18 +345,18 @@ public class KVServer implements IKVServer {
             String extendedLower = "";
             String mainLower = entry.getValue().split(",")[0];
             for (Map.Entry<String, String> entry1 : this.metadata.entrySet()) {
-                System.out.println(entry1.getValue().split(",")[1] + " comparing to " + mainLower);
+//                System.out.println(entry1.getValue().split(",")[1] + " comparing to " + mainLower);
                 if (entry1.getValue().split(",")[1].compareTo(mainLower) == 0) {
-                    System.out.println("IF1 passed");
+//                    System.out.println("IF1 passed");
                     extendedLower = entry1.getValue().split(",")[0];
                     break;
                 }
             }
             if (num_entries >= 3) {
                 for (Map.Entry<String, String> entry2 : this.metadata.entrySet()) {
-                    System.out.println(entry2.getValue().split(",")[1] + " comparing to " + extendedLower);
+//                    System.out.println(entry2.getValue().split(",")[1] + " comparing to " + extendedLower);
                     if (entry2.getValue().split(",")[1].compareTo(extendedLower) == 0) {
-                        System.out.println("IF2 passed");
+//                        System.out.println("IF2 passed");
                         extendedLower = entry2.getValue().split(",")[0];
                         break;
                     }
@@ -422,7 +422,7 @@ public class KVServer implements IKVServer {
             if (Objects.equals(this.lowerRange, range[1])) {
                 coordIps[0] = entry.getKey();
                 secondLower = range[0];
-                System.out.println("Secondlower1: " + entry.getKey());
+//                System.out.println("Secondlower1: " + entry.getKey());
             }
         }
         if (secondUpper == null) {
@@ -443,7 +443,7 @@ public class KVServer implements IKVServer {
                 coordIps[1] = entry.getKey();
                 // Reusing variable to keep extended range
                 finalLower = range[0];
-                System.out.println("Secondlower2 " + entry.getKey());
+//                System.out.println("Secondlower2 " + entry.getKey());
             }
         }
         //this.replicas = replicaIps;

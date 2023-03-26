@@ -67,7 +67,7 @@ public class KVStore implements KVCommInterface {
 		try {
 			return put(key, value);
 		} catch (Exception e) { // Server is offline
-			System.out.println("START FOR LOOP");
+//			System.out.println("START FOR LOOP");
 			for (Map.Entry<String, String> entry : this.metadata.entrySet()) { // Try every server that client knows
 				disconnect();
 				this.address = entry.getKey().split(":")[0];
@@ -160,7 +160,7 @@ public class KVStore implements KVCommInterface {
 			}
 
 			Collections.shuffle(arr);
-			System.out.println(arr);
+//			System.out.println(arr);
 
 			for (String entry : arr) {
 				try {
@@ -187,7 +187,7 @@ public class KVStore implements KVCommInterface {
 					this.read_metadata = newHashMap;
 					return message;
 				} catch (Exception f) { // Server is offline
-					System.out.println("DELETE retry");
+//					System.out.println("DELETE retry");
 					f.printStackTrace();
 					this.read_metadata.remove(entry);
 				}
@@ -216,7 +216,7 @@ public class KVStore implements KVCommInterface {
 				}
 
 				Collections.shuffle(arr);
-				System.out.println(arr);
+//				System.out.println(arr);
 
 				boolean found = false;
 
@@ -237,7 +237,7 @@ public class KVStore implements KVCommInterface {
 							break;
 						}
 					} catch (Exception f) { // Server is offline
-						System.out.println("DELETE");
+//						System.out.println("DELETE");
 						this.read_metadata.remove(entry);
 					}
 				}
@@ -282,7 +282,7 @@ public class KVStore implements KVCommInterface {
 		try {
 			return keyRange();
 		} catch (Exception e) { // Server is offline
-			System.out.println("START FOR LOOP");
+//			System.out.println("START FOR LOOP");
 			for (Map.Entry<String, String> entry : this.metadata.entrySet()) { // Try every server that client knows
 				disconnect();
 				this.address = entry.getKey().split(":")[0];
@@ -310,7 +310,7 @@ public class KVStore implements KVCommInterface {
 		try {
 			message = receiveMessage();
 		} catch (Exception e) {
-			System.out.println("SERVER DOWN, TRY DIFF SERVER");
+//			System.out.println("SERVER DOWN, TRY DIFF SERVER");
 			updateMetadataRemove(this.address + ":" + this.port);
 			return retryKeyrange();
 		}

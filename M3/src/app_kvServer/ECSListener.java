@@ -176,8 +176,8 @@ public class ECSListener implements Runnable {
                 kvStringReplica.append(";");
             }
         }
-        System.out.println(kvString);
-        System.out.println(kvStringReplica);
+//        System.out.println(kvString);
+//        System.out.println(kvStringReplica);
         kvString.append(kvStringReplica);
         return kvString.toString();
     }
