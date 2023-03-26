@@ -48,7 +48,7 @@ public class Evaluator {
 
     public static void evaluate(float num_messages) {
 
-        KVStore client = new KVStore("localhost", 50000);
+        KVStore client = new KVStore("127.0.0.1", 8010);
         try {
             client.connect();
         } catch (Exception e) {
@@ -61,7 +61,7 @@ public class Evaluator {
         long endTime = System.nanoTime();
         long time = (endTime - startTime) / 1000000;
         System.out.println(num_messages/time);
-
+        //System.out.println("Latency:" + time/num_messages);
         startTime = System.nanoTime();
         //Execution for 50% GET 50% PUT
         getTest((int)(0.5 * num_messages), client);
@@ -69,14 +69,16 @@ public class Evaluator {
         endTime = System.nanoTime();
         time = (endTime - startTime) / 1000000;
         System.out.println(num_messages/ time);
+        //System.out.println("Latency:" + time/num_messages);
 
         startTime = System.nanoTime();
         //Execution for 80% GET 20% PUT
-        getTest((int)(0.8 * num_messages), client);
-        putTest((int)(0.2 * num_messages), client);
+        getTest((int)(0.2 * num_messages), client);
+        putTest((int)(0.8 * num_messages), client);
         endTime = System.nanoTime();
         time = (endTime - startTime) / 1000000;
         System.out.println(num_messages/time);
+        //System.out.println("Latency:" + time/num_messages);
     }
 
     public static void main(String[] args) {

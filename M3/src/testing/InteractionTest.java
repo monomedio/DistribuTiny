@@ -11,13 +11,17 @@ public class InteractionTest extends TestCase {
 
 	private KVStore kvClient;
 	private KVStore kvClient2;
+
+	private KVStore kvClient3;
 	
 	public void setUp() {
 		kvClient = new KVStore("localhost", 50000);
 		kvClient2 = new KVStore("localhost", 50000);
+		kvClient3 = new KVStore("localhost", 50001);
 		try {
 			kvClient.connect();
 			kvClient2.connect();
+			kvClient3.connect();
 
 		} catch (Exception e) {
 		}
@@ -44,7 +48,7 @@ public class InteractionTest extends TestCase {
 
 		assertTrue(ex == null && response.getStatus() == StatusType.put_success);
 	}
-	
+
 	@Test
 	public void testPutDisconnected() {
 
@@ -117,6 +121,45 @@ public class InteractionTest extends TestCase {
 			}
 		
 		assertTrue(ex == null && response.getValue().equals("bar"));
+	}
+
+	@Test
+	public void testGetReplica() {
+		String key = "foo";
+		String value = "bar";
+		IKVMessage response = null;
+		Exception ex = null;
+
+		try {
+			response = kvClient3.get(key);
+			System.out.println(response.getMessage());
+		} catch (Exception e) {
+			ex = e;
+		}
+
+		assertTrue(ex == null && response.getStatus() == StatusType.get_success && response.getValue().equals(value));
+	}
+
+	@Test
+	public void testGetDeletedValueFromReplica() {
+		String key = "delTestVal";
+		String value = "toDelete";
+
+		IKVMessage response = null;
+		Exception ex = null;
+
+		try {
+			kvClient.put(key, value);
+			response = kvClient3.get(key);
+			assertEquals(response.getValue(), value);
+			kvClient.put(key, "null");
+			response = kvClient3.get(key);
+
+		} catch (Exception e) {
+			ex = e;
+		}
+
+		assertTrue(ex == null && response.getStatus() == StatusType.get_error);
 	}
 
 	@Test

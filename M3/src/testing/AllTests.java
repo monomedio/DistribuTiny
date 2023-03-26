@@ -30,8 +30,19 @@ public class AllTests {
 			public void run() {
 				try {
 					new LogSetup("logs/testing/test.log", Level.ERROR);
-					//TODO: Broken test
 					new KVServer(50000, 10, "FIFO", "sample_keys",
+							InetAddress.getByName("127.0.0.1"), InetAddress.getByName("127.0.0.1"), 8001).run();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		Thread thread3 = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					new LogSetup("logs/testing/test.log", Level.ERROR);
+					new KVServer(50001, 10, "FIFO", "sample_keys_a",
 							InetAddress.getByName("127.0.0.1"), InetAddress.getByName("127.0.0.1"), 8001).run();
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -45,6 +56,12 @@ public class AllTests {
 			throw new RuntimeException(e);
 		}
 		thread2.start();
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+		thread3.start();
 		try {
 			Thread.sleep(1000);
 		} catch (InterruptedException e) {
