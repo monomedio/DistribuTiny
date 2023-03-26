@@ -106,7 +106,7 @@ public class KVServerComm implements Runnable {
 		KVMessage res;
 		if (validDeletion) {
 			logger.debug("Trying to DELETE for replica:" + msg.getKey());
-			kvServer.deleteKV(msg.getKey());
+			kvServer.deleteKV(msg.getKey(), false);
 			return new KVMessage(KVMessage.StatusType.delete_success, msg.getKey());
 		}
 
@@ -139,7 +139,7 @@ public class KVServerComm implements Runnable {
 		KVMessage res;
 		if (validDeletion) {
 			logger.debug("Trying to DELETE for key:" + msg.getKey());
-			kvServer.deleteKV(msg.getKey());
+			kvServer.deleteKV(msg.getKey(), true);
 			return new KVMessage(KVMessage.StatusType.delete_success, msg.getKey());
 		}
 

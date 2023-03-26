@@ -161,7 +161,26 @@ public class KVServer implements IKVServer {
         }
     }
 
-    public synchronized void deleteKV(String key) throws Exception {
+    public synchronized void deleteKV(String key, boolean replicate) throws Exception {
+        if (replicate && this.replicas == null) {
+            replicate = false;
+        }
+        // TODO: Method blocks if we wait for receive message, still have to decide if its worth
+        if (replicate) {
+            for (int i = 0; i < this.replicas.length; i++) {
+                String[] ipAndPort = this.replicas[i].split(":");
+                internalStore.connect(ipAndPort[0], Integer.parseInt(ipAndPort[1]));
+                internalStore.put(key, "null");
+//                IKVMessage msg = internalStore.receiveMessage();
+//
+//                if (msg.getStatus() != IKVMessage.StatusType.PUT_SUCCESS || msg.getStatus() != IKVMessage.StatusType.PUT_UPDATE) {
+//                    logger.error("Could not replicate data, received:" + msg.getMessage());
+//                    throw new Exception("PUT_ERROR");
+//                }
+                internalStore.disconnect();
+            }
+
+        }
         store.delete(key);
     }
 
