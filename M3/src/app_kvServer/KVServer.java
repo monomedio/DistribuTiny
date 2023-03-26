@@ -203,6 +203,28 @@ public class KVServer implements IKVServer {
         }
     }
 
+    public boolean keyInExtendedRange(String key) {
+        String compLowerRange = null;
+        if (this.extendedLowerRange != null) {
+            compLowerRange = extendedLowerRange;
+        } else {
+            compLowerRange = this.lowerRange;
+        }
+        String hashedKey = DigestUtils.md5Hex(key);
+        if (hashedKey.compareTo(this.upperRange) == 0) {
+            return true;
+        }
+        // if upperRange is larger than lowerRange
+        if (this.upperRange.compareTo(compLowerRange) > 0) {
+            // hashedkey <= upperRange and hashedkey > lowerRange
+            return ((hashedKey.compareTo(this.upperRange) <= 0) && hashedKey.compareTo(compLowerRange) > 0);
+        } else {
+            // upperRange is smaller than lowerRange (wrap around)
+            return ((hashedKey.compareTo(this.upperRange) <= 0 && (compLowerRange.compareTo(hashedKey) > 0))) ||
+                    ((hashedKey.compareTo(this.upperRange) > 0) && (compLowerRange.compareTo(hashedKey) < 0));
+        }
+    }
+
     public void setStatus(String status) {
         if (!(status.equals("STOPPED") || status.equals("ACTIVE") || status.equals("WRITE_LOCKED"))) {
             logger.error("Invalid status type");

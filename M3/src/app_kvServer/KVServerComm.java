@@ -173,7 +173,11 @@ public class KVServerComm implements Runnable {
 			return res = new KVMessage(IKVMessage.StatusType.failed, "Value too long");
 		}
 		// TODO: send metadata to client when SERVER_NOT_RESPONSIBLE
-		if ((msg.getStatus() == IKVMessage.StatusType.get || msg.getStatus() == IKVMessage.StatusType.put) && !kvServer.keyInRange(msg.getKey())) {
+		if (msg.getStatus() == IKVMessage.StatusType.put && !kvServer.keyInRange(msg.getKey())) {
+			logger.info("KVServer not responsible for this key:" + msg.getKey());
+			return res = new KVMessage(IKVMessage.StatusType.server_not_responsible);
+		}
+		if (msg.getStatus() == IKVMessage.StatusType.get && !kvServer.keyInExtendedRange(msg.getKey())) {
 			logger.info("KVServer not responsible for this key:" + msg.getKey());
 			return res = new KVMessage(IKVMessage.StatusType.server_not_responsible);
 		}
