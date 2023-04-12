@@ -6,8 +6,11 @@ import shared.messages.IKVMessage;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,6 +33,11 @@ public class KVStore implements KVCommInterface {
 	private int BUFFER_SIZE = 120100;
 	private int DROP_SIZE = 128 * BUFFER_SIZE;
 
+	private boolean isConnected = false;
+	private KVMessage retryCache;
+
+	private ArrayList<String> subscriptions;
+
 	/**
 	 * Initialize KVStore with address and port of KVServer
 	 * @param address the address of the KVServer
@@ -39,305 +47,203 @@ public class KVStore implements KVCommInterface {
 		this.address = address;
 		this.port = port;
 		this.metadata = new HashMap<String, String>();
+		this.subscriptions = new ArrayList<>();
 	}
 
 	@Override
 	public void connect() throws Exception {
-		this.socket = new Socket(this.address, this.port);
-		this.input = new BufferedInputStream(this.socket.getInputStream());
-		this.output = new BufferedOutputStream(this.socket.getOutputStream());
+		try {
+			this.socket = new Socket(this.address, this.port);
+			this.input = new BufferedInputStream(this.socket.getInputStream());
+			this.output = new BufferedOutputStream(this.socket.getOutputStream());
+			this.isConnected = true;
+		} catch (Exception e) {
+			this.isConnected = false;
+			throw new IOException();
+		}
 	}
 
 	@Override
 	public void disconnect() {
 		try {
-			this.socket.close();
+			this.isConnected = false;
+			if (this.socket != null) {
+				this.socket.close();
+			}
+			// TODO: cleanup stuff
+//			this.address = null;
+//			this.port = null;
 		} catch (IOException e) {
 			logger.warn("Unable to close socket.");
 		}
 	}
 
-	private IKVMessage retryPut(String key, String value) throws Exception {
-		try {
-			System.out.println("Trying get key");
-			return put(key, value);
-		} catch (Exception e) { // Server is offline
-			e.printStackTrace();
-			System.out.println("START FOR LOOP");
-			for (Map.Entry<String, String> entry : this.metadata.entrySet()) { // Try every server that client knows
-				try {
-					disconnect();
-				} catch (Exception f) {
-					f.printStackTrace();
-				}
-				this.address = entry.getKey().split(":")[0];
-				this.port = Integer.parseInt(entry.getKey().split(":")[1]);
-				try {
-					connect();
-					IKVMessage message = put(key, value);
-					System.out.println("Got message from:" + this.socket.getInetAddress() + ":" + this.socket.getPort());
-					return message;
-				} catch (Exception f) { // Server is offline
-					continue;
-				}
-			}
-			throw new Exception();
-		}
+	public void addSubscription(String key) {
+		this.subscriptions.add(key);
+	}
+
+	public void removeSubscription(String key) {
+		this.subscriptions.remove(key);
+	}
+
+	public ArrayList<String> getSubscriptions() {
+		return subscriptions;
+	}
+
+	public boolean getIsConnected() {
+		return this.isConnected;
+	}
+
+	public String getAddress() {
+		return this.address;
+	}
+
+	public int getPort() {
+		return this.port;
+	}
+
+	public void setAddress(String address) {
+		this.address = address;
+	}
+
+	public void setPort(int port) {
+		this.port = port;
 	}
 
 	@Override
-	public IKVMessage put(String key, String value) throws Exception {
-		IKVMessage message = new KVMessage(IKVMessage.StatusType.PUT, key, value);
-		System.out.println("Checking if key " + key + " is in range of " + address+":"+port + " " + this.metadata.get(address+":"+port));
-		if (this.metadata.isEmpty() || keyInRange(key,
-				this.metadata.get(address+":"+port).split(",")[0],
-				this.metadata.get(address+":"+port).split(",")[1]))
-		{ // Client doesn't know about anyone else, try the server it is connected to OR Client has metadata and this server is responsible
-			if (this.socket.isClosed()) {
-				updateMetadataRemove(this.address + ":" + this.port);
-				return retryPut(key, value);
-			} else {
-				System.out.println("Socket still open.");
-				try {
-					System.out.println("Trying sendMessage");
-					sendMessage(message);
-				} catch (IOException io) {
-					System.out.println("Socket closed. Remove current server from metadata and retryGET");
-					updateMetadataRemove(this.address + ":" + this.port);
-					return retryPut(key, value);
-				}
+	public void put(String key, String value) throws Exception {
+		KVMessage message = new KVMessage(IKVMessage.StatusType.PUT, key, value);
 
-			}
-		} else // Client is not responsible according to current metadata. Disconnect from current server, connect to responsible server and retry
-		{
-			System.out.println("Client not responsible. Disconnect from current server, connect to responsible server and retry");
-			String responsibleIpAndPort = findResponsibleServer(key);
-			String[] splitResponsible = responsibleIpAndPort.split(":");
-			String respIp = splitResponsible[0];
-			int respPort = Integer.parseInt(splitResponsible[1]);
-			this.address = respIp;
-			this.port = respPort;
-			disconnect();
-			try {
+		if (!this.metadata.isEmpty()) {
+			String[] lowerUpper = this.metadata.get(this.address + ":" + this.port).split(",");
+			String lower = lowerUpper[0];
+			String upper = lowerUpper[1];
+			if (!keyInRange(key, lower, upper)) {
+				String responsibleServer = findResponsibleServer(key);
+				String[] ipPort = responsibleServer.split(":");
+				disconnect();
+				this.address = ipPort[0];
+				this.port = Integer.parseInt(ipPort[1]);
 				connect();
-			} catch (Exception e) {
-				updateMetadataRemove(this.address + ":" + this.port);
-				return retryPut(key, value);
 			}
-			return retryPut(key, value);
 		}
-
-		try {
-			System.out.println("Trying receiveMessage");
-			message = receiveMessage();
-		} catch (IOException io) {
-			System.out.println("Socket closed. Remove current server " + this.address + ":" + this.port + " from metadata and retryGET");
-			updateMetadataRemove(this.address + ":" + this.port);
-			disconnect();
-			System.out.println("NEVER CALLED");
-			return retryPut(key, value);
-		}
-		System.out.println("receiveMessage success");
-		if (message.getStatus() == IKVMessage.StatusType.SERVER_NOT_RESPONSIBLE) // Currently connected server is not responsible
-		{
-			// Send KEYRANGE request for metadata
-			sendMessage(new KVMessage(IKVMessage.StatusType.KEYRANGE));
-			IKVMessage metaMessage = receiveMessage();
-			// REPLACE METADATA AND RETRY
-			HashMap<String, String> newHashMap = new HashMap<>();
-			String metaString = metaMessage.getKey();
-			String[] tokens = metaString.split(";");
-
-			for (String token : tokens)
-			{
-				String[] tokenSplit = token.split(",");
-				newHashMap.put(tokenSplit[2], tokenSplit[0] + "," + tokenSplit[1]);
-			}
-			// SET NEW METADATA AND RETRY GET
-			this.metadata = newHashMap;
-			return retryPut(key, value);
-		}
-		return message;
-	}
-
-	private IKVMessage retryGet(String key) throws Exception {
-		try {
-			System.out.println("Trying get key");
-			return get(key);
-		} catch (Exception e) { // Server is offline
-			e.printStackTrace();
-			System.out.println("START FOR LOOP");
-			for (Map.Entry<String, String> entry : this.metadata.entrySet()) { // Try every server that client knows
-				try {
-					disconnect();
-				} catch (Exception f) {
-					f.printStackTrace();
-				}
-				this.address = entry.getKey().split(":")[0];
-				this.port = Integer.parseInt(entry.getKey().split(":")[1]);
-				try {
-					connect();
-					IKVMessage message = get(key);
-					System.out.println("Got message from:" + this.socket.getInetAddress() + ":" + this.socket.getPort());
-					return message;
-				} catch (Exception f) { // Server is offline
-					continue;
-				}
-			}
-			throw new Exception();
-		}
+		this.retryCache = message;
+		sendMessage(message);
 	}
 
 	@Override
-	public IKVMessage get(String key) throws Exception {
-		IKVMessage message = new KVMessage(IKVMessage.StatusType.GET, key);
-		System.out.println("Checking if key " + key + " is in range of " + address+":"+port + " " + this.metadata.get(address+":"+port));
-		if (this.metadata.isEmpty() || keyInRange(key,
-				this.metadata.get(address+":"+port).split(",")[0],
-				this.metadata.get(address+":"+port).split(",")[1]))
-		{ // Client doesn't know about anyone else, try the server it is connected to OR Client has metadata and this server is responsible
-			if (this.socket.isClosed()) {
-				updateMetadataRemove(this.address + ":" + this.port);
-				return retryGet(key);
-			} else {
-				System.out.println("Socket still open.");
-				try {
-					System.out.println("Trying sendMessage");
-					sendMessage(message);
-				} catch (IOException io) {
-					System.out.println("Socket closed. Remove current server from metadata and retryGET");
-					updateMetadataRemove(this.address + ":" + this.port);
-					retryGet(key);
-				}
+	public void get(String key) throws Exception {
+		KVMessage message = new KVMessage(IKVMessage.StatusType.GET, key);
 
-			}
-		} else // Client is not responsible according to current metadata. Disconnect from current server, connect to responsible server and retry
-		{
-			System.out.println("Client not responsible. Disconnect from current server, connect to responsible server and retry");
-			String responsibleIpAndPort = findResponsibleServer(key);
-			String[] splitResponsible = responsibleIpAndPort.split(":");
-			String respIp = splitResponsible[0];
-			int respPort = Integer.parseInt(splitResponsible[1]);
-			this.address = respIp;
-			this.port = respPort;
-			disconnect();
-			try {
+		if (!this.metadata.isEmpty()) {
+			String[] lowerUpper = this.metadata.get(this.address + ":" + this.port).split(",");
+			String lower = lowerUpper[0];
+			String upper = lowerUpper[1];
+			if (!keyInRange(key, lower, upper)) {
+				String responsibleServer = findResponsibleServer(key);
+				String[] ipPort = responsibleServer.split(":");
+				disconnect();
+				this.address = ipPort[0];
+				this.port = Integer.parseInt(ipPort[1]);
 				connect();
-			} catch (Exception e) {
-				updateMetadataRemove(this.address + ":" + this.port);
-				return retryGet(key);
 			}
-			return retryGet(key);
 		}
+		this.retryCache = message;
+		sendMessage(message);
+	}
 
-		try {
-			System.out.println("Trying receiveMessage");
-			message = receiveMessage();
-		} catch (IOException io) {
-			System.out.println("Socket closed. Remove current server " + this.address + ":" + this.port + " from metadata and retryGET");
-			updateMetadataRemove(this.address + ":" + this.port);
-			disconnect();
-			System.out.println("NEVER CALLED");
-			retryGet(key);
-		}
-		System.out.println("receiveMessage success");
-		if (message.getStatus() == IKVMessage.StatusType.SERVER_NOT_RESPONSIBLE) // Currently connected server is not responsible
-		{
-			// Send KEYRANGE request for metadata
+	@Override
+	public void keyRange() throws Exception {
+		KVMessage message = new KVMessage(IKVMessage.StatusType.KEYRANGE);
+		sendMessage(message);
+	}
+
+	private void handleMessage(IKVMessage message) throws Exception {
+		IKVMessage.StatusType status = message.getStatus();
+		if (status == IKVMessage.StatusType.PUT_ERROR || status == IKVMessage.StatusType.GET_ERROR || status == IKVMessage.StatusType.DELETE_ERROR ||
+				status == IKVMessage.StatusType.FAILED || status == IKVMessage.StatusType.SERVER_WRITE_LOCK ||
+				status == IKVMessage.StatusType.SERVER_STOPPED) {
+//			System.out.println("BRO");
+			this.retryCache = null;
+			logger.error(message.getMessage());
+			System.out.print("KVClient> ");
+		} else if (status == IKVMessage.StatusType.SERVER_NOT_RESPONSIBLE) {
+			System.out.println(message.getMessage());
 			sendMessage(new KVMessage(IKVMessage.StatusType.KEYRANGE));
-			IKVMessage metaMessage = receiveMessage();
-			// REPLACE METADATA AND RETRY
-			HashMap<String, String> newHashMap = new HashMap<>();
-			String metaString = metaMessage.getKey();
-			String[] tokens = metaString.split(";");
-
-			for (String token : tokens)
-			{
-				String[] tokenSplit = token.split(",");
-				newHashMap.put(tokenSplit[2], tokenSplit[0] + "," + tokenSplit[1]);
-			}
-			// SET NEW METADATA AND RETRY GET
-			this.metadata = newHashMap;
-			return retryGet(key);
-		}
-		return message;
-	}
-
-	private IKVMessage retryKeyrange() throws Exception {
-		try {
-			System.out.println("Trying get key");
-			return keyRange();
-		} catch (Exception e) { // Server is offline
-			e.printStackTrace();
-			System.out.println("START FOR LOOP");
-			for (Map.Entry<String, String> entry : this.metadata.entrySet()) { // Try every server that client knows
-				try {
-					disconnect();
-				} catch (Exception f) {
-					f.printStackTrace();
-				}
-				this.address = entry.getKey().split(":")[0];
-				this.port = Integer.parseInt(entry.getKey().split(":")[1]);
-				try {
-					connect();
-					IKVMessage message = keyRange();
-					System.out.println("Got message from:" + this.socket.getInetAddress() + ":" + this.socket.getPort());
-					return message;
-				} catch (Exception f) { // Server is offline
-					continue;
-				}
-			}
-			throw new Exception();
-		}
-	}
-
-	public IKVMessage keyRange() throws Exception {
-		IKVMessage message = new KVMessage(IKVMessage.StatusType.KEYRANGE);
-
-		sendMessage(message); // Send keyrange message to the currently connected server
-
-		try {
-			System.out.println("Trying receiveMessage");
-			message = receiveMessage();
-		} catch (IOException io) {
-			System.out.println("Socket closed. Remove current server " + this.address + ":" + this.port + " from metadata and retryGET");
-			updateMetadataRemove(this.address + ":" + this.port);
-			disconnect();
-			System.out.println("NEVER CALLED");
-			retryKeyrange();
-		}
-
-		if (message.getStatus() == IKVMessage.StatusType.KEYRANGE_SUCCESS) { //update metadata if successful
-			// REPLACE METADATA
+		} else if (status == IKVMessage.StatusType.KEYRANGE_SUCCESS || status == IKVMessage.StatusType.QUIET_KEYRANGE) {
 			HashMap<String, String> newHashMap = new HashMap<>();
 			String metaString = message.getKey();
 			String[] tokens = metaString.split(";");
 
-			for (String token : tokens)
-			{
+			for (String token : tokens) {
 				String[] tokenSplit = token.split(",");
 				newHashMap.put(tokenSplit[2], tokenSplit[0] + "," + tokenSplit[1]);
 			}
 			// SET NEW METADATA
 			this.metadata = newHashMap;
-		}
+//			System.out.println(this.metadata);
+			// TODO
+			if (status == IKVMessage.StatusType.KEYRANGE_SUCCESS) {
+				printMessage(message.getMessage());
+			}
 
-		return message;
+			// Find responsible server of retryCache, then disconnect, connect to the right one, and sendMessage
+			if (this.retryCache != null) {
+				String responsibleServer = findResponsibleServer(retryCache.getKey());
+				disconnect();
+				this.address = responsibleServer.split(":")[0];
+				this.port = Integer.parseInt(responsibleServer.split(":")[1]);
+				connect();
+				sendMessage(this.retryCache);
+				this.retryCache = null;
+			}
+		} else if (status == IKVMessage.StatusType.BROADCAST_DELETE || status == IKVMessage.StatusType.BROADCAST_UPDATE) {
+			if (this.subscriptions.contains(message.getKey())) {
+				switch (status) {
+					case BROADCAST_UPDATE:
+							if (this.subscriptions.contains(message.getKey())) {
+								System.out.println("[SUBSCRIPTION NOTICE] " + message.getKey() + " has been UPDATED with a new value of " + message.getValue());
+								System.out.print("KVClient> ");
+							}
+							break;
+					case BROADCAST_DELETE:
+							if (this.subscriptions.contains(message.getKey())) {
+								System.out.println("[SUBSCRIPTION NOTICE] " + message.getKey() + " has been DELETED");
+								System.out.print("KVClient> ");
+							}
+							break;
+				}
+			}
+		} else {
+			this.retryCache = null;
+			printMessage(message.getMessage());
+		}
 	}
+
+	private void printError(String error){
+		System.out.println("KVClient> " + "[ERROR] " +  error);
+		System.out.print("KVClient> ");
+	}
+
+	private void printMessage(String message){
+		System.out.println("KVClient> " + "[MESSAGE] " +  message);
+		System.out.print("KVClient> ");
+	}
+
 
 	private boolean keyInRange(String key, String lower, String upper) {
 		String hashedKey = DigestUtils.md5Hex(key);
-		if (hashedKey.compareTo(lower) == 0) {
+		if (hashedKey.compareTo(upper) == 0) {
 			return true;
 		}
-		// if lowerRange is larger than upperRange
-		if (lower.compareTo(upper) > 0) {
-			// hashedkey <= lowerRange and hasedkey > upperRange
-			return ((hashedKey.compareTo(lower) <= 0) && hashedKey.compareTo(upper) > 0);
+		// if upperRange is larger than lowerRange
+		if (upper.compareTo(lower) > 0) {
+			// hashedkey <= upperRange and hashedkey > lowerRange
+			return ((hashedKey.compareTo(upper) <= 0) && hashedKey.compareTo(lower) > 0);
 		} else {
-			// lowerRange is smaller than upperRange (wrap around)
-			return ((hashedKey.compareTo(lower) <= 0 && (upper.compareTo(hashedKey) > 0))) ||
-					((hashedKey.compareTo(lower) > 0) && (upper.compareTo(hashedKey) < 0));
+			// upperRange is smaller than lowerRange (wrap around)
+			return ((hashedKey.compareTo(upper) <= 0 && (lower.compareTo(hashedKey) > 0))) ||
+					((hashedKey.compareTo(upper) > 0) && (lower.compareTo(hashedKey) < 0));
 		}
 	}
 
@@ -356,16 +262,16 @@ public class KVStore implements KVCommInterface {
 
 	public void updateMetadataRemove(String ipAndPort) {
 		String[] myRange = this.metadata.get(ipAndPort).split(",");
-		String myFromHash = myRange[0];
-		String myToHash = myRange[1];
+		String myToHash = myRange[0];
+		String myFromHash = myRange[1];
 		this.metadata.remove(ipAndPort);
 		String fromHash = "";
 		String toHash = "";
 		String entryIp = "";
 		for (Map.Entry<String, String> entry: this.metadata.entrySet()) {
 			String[] range = entry.getValue().split(",");
-			fromHash = range[0];
-			toHash = range[1];
+			toHash = range[0];
+			fromHash = range[1];
 			entryIp = entry.getKey();
 			if (toHash.equals(myFromHash)) {
 				toHash = myToHash;
@@ -373,7 +279,8 @@ public class KVStore implements KVCommInterface {
 			}
 		}
 
-		this.metadata.replace(entryIp, fromHash + "," + toHash);
+		this.metadata.replace(entryIp, toHash + "," + fromHash);
+//		return this.connections.get(entryIp);
 	}
 
 	/**
@@ -389,24 +296,21 @@ public class KVStore implements KVCommInterface {
 		logger.info("Send message:\t '" + msg.getMessage().substring(0, msg.getMessage().length() - 2) + "'");
 	}
 
-	private IKVMessage receiveMessage() throws IOException {
+	private KVMessage receiveMessage() throws IOException {
 
 		int index = 0;
 		byte[] msgBytes = null, tmp = null;
 		byte[] bufferBytes = new byte[BUFFER_SIZE];
 
-//		System.out.println("Before input.read()");
 		/* read first char from stream */
 		byte read = (byte) input.read();
-		if (read == -1) {
-			throw new IOException();
-		}
-//		System.out.println("After input.read()");
 		boolean reading = true;
-//		System.out.println("Before while loop");
-		while(read != 13 && reading) {/* carriage return */
+		if (read == 13 || read == 10) {
+			read = (byte) input.read();
+		}
+
+		while(read != 13 && read !=-1 && reading) {/* CR, LF, error */
 			/* if buffer filled, copy to msg array */
-//			System.out.println("Inside while loop");
 			if(index == BUFFER_SIZE) {
 				if(msgBytes == null){
 					tmp = new byte[BUFFER_SIZE];
@@ -423,11 +327,9 @@ public class KVStore implements KVCommInterface {
 				index = 0;
 			}
 
-			/* only read valid characters, i.e. letters and numbers */
-			if((read > 31 && read < 127)) {
-				bufferBytes[index] = read;
-				index++;
-			}
+			/* only read valid characters, i.e. letters and constants */
+			bufferBytes[index] = read;
+			index++;
 
 			/* stop reading is DROP_SIZE is reached */
 			if(msgBytes != null && msgBytes.length + index >= DROP_SIZE) {
@@ -436,11 +338,11 @@ public class KVStore implements KVCommInterface {
 
 			/* read next char from stream */
 			read = (byte) input.read();
-			if (read == -1) {
-				throw new IOException();
-			}
 		}
-//		System.out.println("After while loop");
+
+		if (read == -1) {
+			throw new IOException();
+		}
 
 		if(msgBytes == null){
 			tmp = new byte[index];
@@ -452,11 +354,50 @@ public class KVStore implements KVCommInterface {
 		}
 
 		msgBytes = tmp;
-
+//		logger.info(Arrays.toString(msgBytes));
+		KVMessage msg;
 		/* build final String */
-		IKVMessage msg = new KVMessage(msgBytes);
-		logger.info("Receive message:\t '" + msg.getMessage().substring(0, msg.getMessage().length() - 2) + "'");
+		// TODO: isOpen? what's this for
+//		if (msgBytes.length == 0) {
+//			isOpen = false;
+//		}
+		try {
+			msg = new KVMessage(msgBytes);
+		} catch (Exception e) {
+			msg = new KVMessage(KVMessage.StatusType.FAILED, "Error");
+		}
+//		System.out.println("RECEIVE \t<"
+//				+ this.address + ":"
+//				+ this.port + ">: '"
+//				+ msg.getMessage() + "'");
 		return msg;
+	}
+
+	@Override
+	public void run() {
+		while (true) {
+			if (this.isConnected) {
+				try {
+					KVMessage received = receiveMessage();
+//					System.out.println(received.getMessage());
+					handleMessage(received);
+				} catch (IOException ioe) {
+					// TODO: socket closed
+					if (this.isConnected) {
+						System.out.println("\nSocket closed! (Connected)");
+						System.out.print("KVClient> ");
+					}
+					disconnect();
+				} catch (IllegalArgumentException ia) {
+					logger.error("Server was terminated!");
+					disconnect();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			} else {
+				System.out.print("");
+			}
+		}
 	}
 }
 

@@ -21,7 +21,7 @@ public class KVClient implements IKVClient {
     private static final String PROMPT = "KVClient> ";
     private static final Logger logger = Logger.getRootLogger();
     private BufferedReader stdin;
-    private KVCommInterface kvStore = null;
+    private KVStore kvStore = null;
     private boolean stop = false;
 
     public void run() {
@@ -32,21 +32,40 @@ public class KVClient implements IKVClient {
             try {
                 String command = this.stdin.readLine();
                 this.handleCommand(command);
-            } catch (IOException e) {
+//                System.out.println("after handle");
+//                System.out.println(this.stop);
+            } catch (Exception e) {
+                e.printStackTrace();
                 this.stop = true;
                 printError("stdin I/O");
                 System.out.println("Terminating application...");
             }
         }
+//        System.out.println("done run");
     }
 
     @Override
     public void newConnection(String hostname, int port) throws Exception {
-        if (this.kvStore != null) {
-            throw new IOException("Connection already established.");
+        try {
+            if (this.kvStore == null) {
+                this.kvStore = new KVStore(hostname, port);
+                this.kvStore.connect();
+                Thread kvStoreThread = new Thread(this.kvStore);
+                kvStoreThread.setDaemon(true);
+                kvStoreThread.start();
+                logger.info("Connection established.");
+            } else if (this.kvStore.getIsConnected()) {
+                System.out.println("Connection already established with " + this.kvStore.getAddress() + ":" + this.kvStore.getPort());
+            } else {
+                this.kvStore.setAddress(hostname);
+                this.kvStore.setPort(port);
+                this.kvStore.connect();
+                logger.info("Connection established.");
+            }
+        } catch (IOException e) {
+            this.kvStore = null;
+            printError("Connection failed.");
         }
-        this.kvStore = new KVStore(hostname, port);
-        this.kvStore.connect();
     }
 
     @Override
@@ -59,71 +78,90 @@ public class KVClient implements IKVClient {
     public void disconnect() {
         if (this.kvStore != null) {
             this.kvStore.disconnect();
-            this.kvStore = null;
         }
     }
 
-    private void handleCommand(String command) {
+    private void handleCommand(String command) throws Exception {
         String[] tokens = command.split("\\s+");
         String firstToken = tokens[0];
         switch (firstToken) {
+            case "subscriptions":
+                if (this.kvStore == null || !this.kvStore.getIsConnected()) {
+                    printError("Not connected to a server.");
+                } else {
+                    System.out.println(this.kvStore.getSubscriptions());
+                }
+                break;
+            case "subscribe":
+                if (tokens.length != 2) {
+                    printError("Invalid number of arguments");
+                    printHelp();
+                }
+                else if (this.kvStore == null || !this.kvStore.getIsConnected()) {
+                    printError("Not connected to a server.");
+                } else {
+                    if (this.kvStore.getSubscriptions().contains(tokens[1])) {
+                        printError("Already subscribed to key.");
+                    } else {
+                       this.kvStore.addSubscription(tokens[1]);
+                        System.out.println("Subscribed to key: " + tokens[1]);
+                    }
+                }
+                break;
+            case "unsubscribe":
+                if (tokens.length != 2) {
+                    printError("Invalid number of arguments");
+                    printHelp();
+                } else if (this.kvStore == null || !this.kvStore.getIsConnected()) {
+                    printError("Not connected to a server.");
+                } else {
+                    if (this.kvStore.getSubscriptions().contains(tokens[1])) {
+                        this.kvStore.removeSubscription(tokens[1]);
+                        System.out.println("Unsubscribed from key: " + tokens[1]);
+                    } else {
+                        printError("Already unsubscribed to key.");
+                    }
+                }
+                break;
             case "quit":
                 this.stop = true;
-                if (this.kvStore != null) {
-                    kvStore.disconnect();
-                }
-                // TODO Tears down the active connection to the server and exits the program.
+                disconnect();
                 System.out.println("Terminating application...");
                 break;
             case "help":
                 printHelp();
                 break;
             case "disconnect":
-                // TODO disconnect implemented?
                 disconnect();
                 System.out.println(PROMPT + "Connection terminated.");
                 break;
             case "connect":
-                // TODO establish connection
-                if(tokens.length == 3 && this.kvStore == null) {
+                if(tokens.length == 3 && (this.kvStore == null || !this.kvStore.getIsConnected())) {
                     try{
                         newConnection(tokens[1], Integer.parseInt(tokens[2]));
-                        logger.info("Connection established.");
                     } catch(NumberFormatException nfe) {
-                        this.kvStore = null;
                         printError("No valid address. Port must be a number.");
                         logger.info("Unable to parse argument <port>", nfe);
                     } catch (UnknownHostException e) {
-                        this.kvStore = null;
                         printError("Unknown Host.");
                         logger.info("Unknown Host.", e);
                     } catch (Exception e) {
-                        this.kvStore = null;
                         printError("Could not establish connection.");
                         logger.warn("Could not establish connection.", e);
                     }
                 } else if (tokens.length != 3) {
                     printError("Invalid number of arguments.");
-                } else {
+                } else if (this.kvStore.getIsConnected()) {
                     printError("Connection already established.");
                 }
                 break;
             case "put":
                 if (tokens.length == 3 && this.kvStore != null) {
                     try {
-                        IKVMessage message = kvStore.put(tokens[1], tokens[2]);
-                        IKVMessage.StatusType status = message.getStatus();
-                        if (status == IKVMessage.StatusType.PUT_ERROR || status == IKVMessage.StatusType.DELETE_ERROR ||
-                                status == IKVMessage.StatusType.FAILED || status == IKVMessage.StatusType.SERVER_WRITE_LOCK ||
-                                status == IKVMessage.StatusType.SERVER_STOPPED) {
-                            printError(message.getMessage());
-                        } else {
-                            System.out.println(message.getMessage());
-                        }
+                        kvStore.put(tokens[1], tokens[2]);
                     } catch (Exception e) {
-                        this.kvStore = null;
-                        printError("Could not complete PUT request due to I/O error. Disconnecting...");
-                        logger.warn("Could not complete PUT request due to I/O error. Disconnecting...");
+                        printError("KVClient PUT");
+                        throw new RuntimeException(e);
                     }
                 } else if (tokens.length != 3) {
                     printError("Invalid number of arguments");
@@ -132,41 +170,28 @@ public class KVClient implements IKVClient {
                 }
                 break;
             case "get":
-                if (tokens.length == 2 && this.kvStore != null) {
+                if (tokens.length == 2 && this.kvStore != null && this.kvStore.getIsConnected()) {
                     try {
-                        IKVMessage message = kvStore.get(tokens[1]);
-                        IKVMessage.StatusType status = message.getStatus();
-                        if (status == IKVMessage.StatusType.FAILED || status == IKVMessage.StatusType.GET_ERROR ||
-                                status == IKVMessage.StatusType.SERVER_STOPPED) {
-                            printError(message.getMessage());
-                        } else {
-                            System.out.println(message.getMessage());
-                        }
+                        kvStore.get(tokens[1]);
                     } catch (Exception e) {
-                        this.kvStore = null;
-                        printError("Could not complete GET request due to I/O error. Disconnecting...");
-                        logger.warn("Could not complete GET request due to I/O error. Disconnecting...");
+//                        e.printStackTrace();
+                        printError("KVClient GET");
+                        throw new RuntimeException(e);
                     }
                 } else if (tokens.length != 2) {
-                    printError("Invalid number of arguments.");
-                } else {
-                    printError("Not connected to a server.");
-                }
+                        printError("Invalid number of arguments.");
+                    } else {
+                        printError("Not connected to a server.");
+                    }
                 break;
             case "keyrange":
-                if (tokens.length == 1 && this.kvStore != null) {
+                if (tokens.length == 1 && this.kvStore != null && this.kvStore.getIsConnected()) {
                     try {
-                        IKVMessage message = kvStore.keyRange();
-                        IKVMessage.StatusType status = message.getStatus();
-                        if (status == IKVMessage.StatusType.SERVER_STOPPED || status == IKVMessage.StatusType.FAILED) {
-                            printError(message.getMessage());
-                        } else {
-                            System.out.println(message.getMessage());
-                        }
+                        kvStore.keyRange();
+
                     } catch (Exception e) {
-                        this.kvStore = null;
-                        printError("Could not complete KEYRANGE request due to I/O error. Disconnecting...");
-                        logger.warn("Could not complete KEYRANGE request due to I/O error. Disconnecting...");
+                        printError("KVClient KEYRANGE");
+                        throw new RuntimeException(e);
                     }
                 } else if (tokens.length != 1) {
                     printError("Too many arguments given. 0 expected.");
@@ -283,6 +308,7 @@ public class KVClient implements IKVClient {
                 }
             });
             kvClient.run();
+//            System.out.println("after run");
         } catch (IOException e) {
             System.out.println("[ERROR] Unable to initialize logger.");
             e.printStackTrace();

@@ -234,7 +234,13 @@ public class ECSListener implements Runnable {
             case LAST_ONE:
                 this.socket.close();
                 kvServer.close();
-
+                break;
+            case BROADCAST_DELETE:
+            case BROADCAST_UPDATE:
+                // TODO: send to all connected clients
+                for (Map.Entry<String, KVServerComm> entry: this.kvServer.getClientConnections().entrySet()) {
+                    entry.getValue().sendMessage(message);
+                }
         }
 
     }

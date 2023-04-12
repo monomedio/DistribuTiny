@@ -7,12 +7,11 @@ import logger.LogSetup;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import shared.messages.IKVMessage;
+import shared.messages.KVMessage;
 
 import java.io.IOException;
-import java.net.BindException;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.InetAddress;
+import java.net.*;
 import java.util.*;
 
 public class KVServer implements IKVServer {
@@ -48,6 +47,8 @@ public class KVServer implements IKVServer {
 
     private Cache cache;
 
+    private HashMap<String, KVServerComm> clientConnections;
+
     /**
      * Start KV Server at given port
      *
@@ -71,10 +72,15 @@ public class KVServer implements IKVServer {
         this.address = address;
         this.ecsIp = ecsIp;
         this.ecsPort = ecsPort;
+        this.clientConnections = new HashMap<>();
         switch (this.cacheStrategy) {
             case LFU:
                 this.cache = new LFUCache(this.cacheSize);
         }
+    }
+
+    public ECSListener getEcsListener() {
+        return ecsListener;
     }
 
     @Override
@@ -204,6 +210,15 @@ public class KVServer implements IKVServer {
     }
     public void setMetadata(HashMap<String, String> map) {
         this.metadata = map;
+        KVMessage metaMessage = new KVMessage(IKVMessage.StatusType.QUIET_KEYRANGE, metadataToString());
+            for (Map.Entry<String, KVServerComm> entry : this.clientConnections.entrySet()) {
+                try {
+                    entry.getValue().sendMessage(metaMessage);
+                } catch (IOException e) {
+                    System.out.println("Failure in broadcasting metadata to clients.");
+                    throw new RuntimeException(e);
+                }
+            }
     }
 
     public boolean inMetadata(String ipAndPort) {
@@ -241,6 +256,14 @@ public class KVServer implements IKVServer {
         return null;
     }
 
+    public void deleteClientConnection(String ipAndPort) {
+        this.clientConnections.remove(ipAndPort);
+    }
+
+    public HashMap<String, KVServerComm> getClientConnections() {
+        return clientConnections;
+    }
+
     @Override
     public void run() {
         running = initializeServer();
@@ -253,12 +276,17 @@ public class KVServer implements IKVServer {
                 try {
                     Socket client = serverSocket.accept();
                     KVServerComm connection = new KVServerComm(client, this);
+                    this.clientConnections.put(client.getInetAddress().getHostAddress() + ":" + client.getPort(), connection);
                     new Thread(connection).start();
 
                     logger.info("Connected to "
                             + client.getInetAddress().getHostAddress()
                             + " on port " + client.getPort());
+                } catch (SocketException e) {
+                    logger.error("Error! " +
+                            "Server socket closed. \n");
                 } catch (IOException e) {
+                    e.printStackTrace();
                     logger.error("Error! " +
                             "Unable to establish connection. \n");
                 }
@@ -449,19 +477,18 @@ public class KVServer implements IKVServer {
             System.out.println("Error! Unable to initialize logger!");
             e.printStackTrace();
             System.exit(1);
-        } catch (NumberFormatException nfe) {
+        } catch (NumberFormatException | IndexOutOfBoundsException nfe) {
             System.out.println("Error! Invalid arguments provided!");
             printHelp();
             System.exit(1);
-        } catch (NullPointerException e) {
-            System.out.println("Error! No argument given for mandatory variables.");
-            printHelp();
-            System.exit(1);
-        } catch (IndexOutOfBoundsException iobe) {
-            System.out.println("Error! Invalid arguments provided!");
-            printHelp();
-            System.exit(1);
-        } catch (IllegalArgumentException iae) {
+        }
+        // TODO
+//        catch (NullPointerException e) {
+//            System.out.println("Error! No argument given for mandatory variables.");
+//            printHelp();
+//            System.exit(1);
+//        }
+        catch (IllegalArgumentException iae) {
             System.out.println("Error! Port must be provided!");
             printHelp();
             System.exit(1);
