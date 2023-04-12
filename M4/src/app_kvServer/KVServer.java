@@ -7,6 +7,8 @@ import logger.LogSetup;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import shared.messages.IKVMessage;
+import shared.messages.KVMessage;
 
 import java.io.IOException;
 import java.net.BindException;
@@ -307,6 +309,13 @@ public class KVServer implements IKVServer {
         this.ecsListener.shutdown();
     }
 
+    public void notifyEcs(String key, String op) throws IOException {
+        if (op.equals("DELETE")) {
+            ecsListener.sendMessage(new KVMessage(IKVMessage.StatusType.KEY_DELETE, key));
+        } else if (op.equals("UPDATE")) {
+            ecsListener.sendMessage(new KVMessage(IKVMessage.StatusType.KEY_UPDATE, key));
+        }
+    }
     // HELPERS
     private static Level getLevel(String levelString) {
 

@@ -103,6 +103,7 @@ public class KVServerComm implements Runnable {
 		if (validDeletion) {
 			logger.debug("Trying to DELETE for key:" + msg.getKey());
 			kvServer.deleteKV(msg.getKey());
+			kvServer.notifyEcs(msg.getKey(), "DELETE");
 			return new KVMessage(KVMessage.StatusType.DELETE_SUCCESS, msg.getKey());
 		}
 
@@ -115,6 +116,7 @@ public class KVServerComm implements Runnable {
 
 		logger.debug("Trying to PUT_UPDATE for key: " + msg.getKey() + " with value: " + msg.getValue());
 		kvServer.putKV(msg.getKey(), msg.getValue());
+		kvServer.notifyEcs(msg.getKey(), "UPDATE");
 		res = new KVMessage(KVMessage.StatusType.PUT_UPDATE,
 				msg.getKey(), msg.getValue());
 		return res;
