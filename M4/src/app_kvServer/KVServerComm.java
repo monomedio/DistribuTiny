@@ -75,6 +75,7 @@ public class KVServerComm implements Runnable {
 		} finally {
 			
 			try {
+				kvServer.deleteClientConnection(clientSocket.getInetAddress().getHostAddress() + ":" + clientSocket.getPort());
 				if (clientSocket != null) {
 					logger.debug("Cleaning up resources");
 					input.close();
@@ -103,7 +104,9 @@ public class KVServerComm implements Runnable {
 		if (validDeletion) {
 			logger.debug("Trying to DELETE for key:" + msg.getKey());
 			kvServer.deleteKV(msg.getKey());
-			kvServer.notifyEcs(msg.getKey(), "DELETE");
+			// TODO SEND TO ECS FOR BROADCAST
+			KVMessage ecsBroadcast = new KVMessage(IKVMessage.StatusType.BROADCAST_DELETE, msg.getKey());
+			this.kvServer.getEcsListener().sendMessage(ecsBroadcast);
 			return new KVMessage(KVMessage.StatusType.DELETE_SUCCESS, msg.getKey());
 		}
 
@@ -116,9 +119,11 @@ public class KVServerComm implements Runnable {
 
 		logger.debug("Trying to PUT_UPDATE for key: " + msg.getKey() + " with value: " + msg.getValue());
 		kvServer.putKV(msg.getKey(), msg.getValue());
-		kvServer.notifyEcs(msg.getKey(), "UPDATE");
 		res = new KVMessage(KVMessage.StatusType.PUT_UPDATE,
 				msg.getKey(), msg.getValue());
+		// TODO: SEND TO ECS FOR BROADCAST
+		KVMessage ecsBroadcast = new KVMessage(IKVMessage.StatusType.BROADCAST_UPDATE, msg.getKey(), msg.getValue());
+		this.kvServer.getEcsListener().sendMessage(ecsBroadcast);
 		return res;
 
 	}
@@ -140,7 +145,7 @@ public class KVServerComm implements Runnable {
 		// TODO: send metadata to client when SERVER_NOT_RESPONSIBLE
 		if ((msg.getStatus() == IKVMessage.StatusType.GET || msg.getStatus() == IKVMessage.StatusType.PUT) && !kvServer.keyInRange(msg.getKey())) {
 			logger.info("KVServer not responsible for this key:" + msg.getKey());
-			return res = new KVMessage(IKVMessage.StatusType.SERVER_NOT_RESPONSIBLE, "failed");
+			return res = new KVMessage(IKVMessage.StatusType.SERVER_NOT_RESPONSIBLE);
 		}
 		try{
 			switch (msg.getStatus()) {

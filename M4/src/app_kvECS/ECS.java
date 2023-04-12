@@ -31,6 +31,13 @@ public class ECS implements IECS {
         this.connections = new HashMap<>();
     }
 
+    public void broadcastSubscriptions(KVMessage message) throws IOException {
+        // send subscription message to each server
+        for (Map.Entry<String, ECSComm> entry : this.connections.entrySet()) {
+            entry.getValue().sendMessage(message);
+        }
+    }
+
     /**
      * Stringify the metadata HashMap
      *

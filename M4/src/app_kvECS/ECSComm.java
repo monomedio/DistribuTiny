@@ -120,6 +120,10 @@ public class ECSComm implements Runnable {
 				case SHUTDOWN:
 					ecs.removeServer(this.getClientListenerIpPort(), msg.getKey());
 					return null;
+				case BROADCAST_UPDATE:
+				case BROADCAST_DELETE:
+					ecs.broadcastSubscriptions(msg);
+					return null;
 				default:
 					return res = new KVMessage(IKVMessage.StatusType.FAILED, "Unknown request");
 				}

@@ -46,7 +46,8 @@ public class AdditionalTest extends TestCase {
 		Exception ex = null;
 
 		try {
-			response = kvClient.put(key, value);
+			kvClient.put(key, value);
+			response = kvClient.receiveMessage();
 		} catch (Exception e) {
 			ex = e;
 		}
@@ -66,7 +67,8 @@ public class AdditionalTest extends TestCase {
 		Exception ex = null;
 
 		try {
-			response = kvClient.put(key, value.toString());
+			kvClient.put(key, value.toString());
+			response = kvClient.receiveMessage();
 		} catch (Exception e) {
 			ex = e;
 		}
@@ -85,7 +87,8 @@ public class AdditionalTest extends TestCase {
 		try {
 			kvClient.put(key, value);
 			kvClient.put(key, "null");
-			response = kvClient.get(key);
+			kvClient.get(key);
+			response = kvClient.receiveMessage();
 		} catch (Exception e) {
 			ex = e;
 		}
@@ -102,7 +105,8 @@ public class AdditionalTest extends TestCase {
 
 		try {
 			kvClient.put(key, value);
-			response = kvClient2.get(key);
+			kvClient2.get(key);
+			response = kvClient2.receiveMessage();
 		} catch (Exception e) {
 			ex = e;
 		}
@@ -121,7 +125,8 @@ public class AdditionalTest extends TestCase {
 		try {
 			kvClient.put(key, value);
 			kvClient2.put(key, "v3-update");
-			response = kvClient.get(key);
+			kvClient.get(key);
+			response = kvClient.receiveMessage();
 		} catch (Exception e) {
 			ex = e;
 		}
@@ -141,7 +146,8 @@ public class AdditionalTest extends TestCase {
 			kvClient.put(key, value);
 			kvClient2.put(key, "v3-update");
 			kvClient3.put(key, "v4-update");
-			response = kvClient.get(key);
+			kvClient.get(key);
+			response = kvClient.receiveMessage();
 		} catch (Exception e) {
 			ex = e;
 		}
@@ -159,7 +165,8 @@ public class AdditionalTest extends TestCase {
 		try {
 			kvClient.put(key, value);
 			kvClient2.put(key, "null");
-			response = kvClient.get(key);
+			kvClient.get(key);
+			response = kvClient.receiveMessage();
 		} catch (Exception e) {
 			ex = e;
 		}
