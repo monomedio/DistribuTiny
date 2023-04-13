@@ -288,6 +288,8 @@ public class KVClient implements IKVClient {
                 "get <key>", "Retrieves the value for the given key from the server",
                 "quit", "Exits the program",
                 "logLevel <level>", "Sets the logger to the specified level",
+                "subscribe <key>", "Subscribes to changes and deletion of a key",
+                "unsubscribe <key>", "Unsubscribes from changes and deletion of a key",
                 "", "| Possible log levels are:",
                 "", "| ALL | DEBUG | INFO | WARN | ERROR | FATAL | OFF");
     }
