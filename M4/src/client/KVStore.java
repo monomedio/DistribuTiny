@@ -59,7 +59,7 @@ public class KVStore implements KVCommInterface {
 			this.isConnected = true;
 		} catch (Exception e) {
 			this.isConnected = false;
-			throw new IOException();
+			throw e;
 		}
 	}
 

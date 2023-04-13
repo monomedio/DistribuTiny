@@ -89,6 +89,8 @@ public class AdditionalTest extends TestCase {
 			kvClient.put(key, "null");
 			kvClient.get(key);
 			response = kvClient.receiveMessage();
+			response = kvClient.receiveMessage();
+			response = kvClient.receiveMessage();
 		} catch (Exception e) {
 			ex = e;
 		}
@@ -105,8 +107,10 @@ public class AdditionalTest extends TestCase {
 
 		try {
 			kvClient.put(key, value);
+			kvClient.receiveMessage();
 			kvClient2.get(key);
 			response = kvClient2.receiveMessage();
+//			System.out.println(response.getMessage());
 		} catch (Exception e) {
 			ex = e;
 		}
@@ -124,9 +128,13 @@ public class AdditionalTest extends TestCase {
 
 		try {
 			kvClient.put(key, value);
+			response = kvClient.receiveMessage();
+//			System.out.println(response.getMessage());
 			kvClient2.put(key, "v3-update");
+			kvClient2.receiveMessage().getMessage();
 			kvClient.get(key);
 			response = kvClient.receiveMessage();
+//			System.out.println(response.getMessage());
 		} catch (Exception e) {
 			ex = e;
 		}
@@ -144,10 +152,16 @@ public class AdditionalTest extends TestCase {
 
 		try {
 			kvClient.put(key, value);
+			response = kvClient.receiveMessage();
+//			System.out.println(response.getMessage());
 			kvClient2.put(key, "v3-update");
+			kvClient2.receiveMessage();
 			kvClient3.put(key, "v4-update");
+			kvClient3.receiveMessage();
 			kvClient.get(key);
 			response = kvClient.receiveMessage();
+//			System.out.println(response.getMessage());
+
 		} catch (Exception e) {
 			ex = e;
 		}
@@ -155,6 +169,7 @@ public class AdditionalTest extends TestCase {
 		assertTrue(ex == null
 				&& response.getStatus() == IKVMessage.StatusType.GET_SUCCESS && response.getValue().equals("v4-update"));
 	}
+
 	@Test
 	public void testTwoClientsDeleteGet() {
 		String key = "k4";
@@ -164,9 +179,14 @@ public class AdditionalTest extends TestCase {
 
 		try {
 			kvClient.put(key, value);
+			response = kvClient.receiveMessage();
+			System.out.println(response.getMessage());
 			kvClient2.put(key, "null");
+			kvClient2.receiveMessage();
 			kvClient.get(key);
 			response = kvClient.receiveMessage();
+			System.out.println(response.getMessage());
+
 		} catch (Exception e) {
 			ex = e;
 		}

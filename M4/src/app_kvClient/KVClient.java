@@ -62,7 +62,7 @@ public class KVClient implements IKVClient {
                 this.kvStore.connect();
                 logger.info("Connection established.");
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             this.kvStore = null;
             printError("Connection failed.");
         }
