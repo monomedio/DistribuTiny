@@ -1,0 +1,17 @@
+To build the project, navigate to the M4 directory and run:
+
+	ant clean && ant
+
+To start a KVServer:
+
+	java -jar m4-server.jar -b <ECSip:ECSport> -p <serverPort> -d <nameofdirectorytostorekeys>
+
+To start ECS:
+
+	java -jar m4-ecs.jar -a <ECSip> -p <ECSport>
+
+To start a KVClient:
+
+	java -jar m4-client.jar
+
+	For usage, see the "help" command
