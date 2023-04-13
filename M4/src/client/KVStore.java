@@ -1,17 +1,13 @@
 package client;
 
-import app_kvECS.ECSComm;
 import org.apache.commons.codec.digest.DigestUtils;
 import shared.messages.IKVMessage;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
-import java.net.SocketException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,7 +42,7 @@ public class KVStore implements KVCommInterface {
 	public KVStore(String address, int port) {
 		this.address = address;
 		this.port = port;
-		this.metadata = new HashMap<String, String>();
+		this.metadata = new HashMap<>();
 		this.subscriptions = new ArrayList<>();
 	}
 
@@ -68,6 +64,7 @@ public class KVStore implements KVCommInterface {
 		try {
 			this.isConnected = false;
 			if (this.socket != null) {
+//				System.out.println(this.isConnected);
 				this.socket.close();
 			}
 			// TODO: cleanup stuff
@@ -134,7 +131,6 @@ public class KVStore implements KVCommInterface {
 	@Override
 	public void get(String key) throws Exception {
 		KVMessage message = new KVMessage(IKVMessage.StatusType.GET, key);
-
 		if (!this.metadata.isEmpty()) {
 			String[] lowerUpper = this.metadata.get(this.address + ":" + this.port).split(",");
 			String lower = lowerUpper[0];
@@ -146,9 +142,11 @@ public class KVStore implements KVCommInterface {
 				this.address = ipPort[0];
 				this.port = Integer.parseInt(ipPort[1]);
 				connect();
+//				System.out.println("Connected to " + this.address + ":" + this.port);
 			}
 		}
 		this.retryCache = message;
+//		System.out.println(this.socket.getInetAddress().getHostAddress() + ":" + this.socket.getPort() + " isClosed: " + this.socket.isClosed());
 		sendMessage(message);
 	}
 
@@ -201,17 +199,17 @@ public class KVStore implements KVCommInterface {
 			if (this.subscriptions.contains(message.getKey())) {
 				switch (status) {
 					case BROADCAST_UPDATE:
-							if (this.subscriptions.contains(message.getKey())) {
-								System.out.println("[SUBSCRIPTION NOTICE] " + message.getKey() + " has been UPDATED with a new value of " + message.getValue());
-								System.out.print("KVClient> ");
-							}
-							break;
+						if (this.subscriptions.contains(message.getKey())) {
+							System.out.println("[SUBSCRIPTION NOTICE] " + message.getKey() + " has been UPDATED with a new value of " + message.getValue());
+							System.out.print("KVClient> ");
+						}
+						break;
 					case BROADCAST_DELETE:
-							if (this.subscriptions.contains(message.getKey())) {
-								System.out.println("[SUBSCRIPTION NOTICE] " + message.getKey() + " has been DELETED");
-								System.out.print("KVClient> ");
-							}
-							break;
+						if (this.subscriptions.contains(message.getKey())) {
+							System.out.println("[SUBSCRIPTION NOTICE] " + message.getKey() + " has been DELETED");
+							System.out.print("KVClient> ");
+						}
+						break;
 				}
 			}
 		} else {
@@ -383,11 +381,11 @@ public class KVStore implements KVCommInterface {
 					handleMessage(received);
 				} catch (IOException ioe) {
 					// TODO: socket closed
-					if (this.isConnected) {
-						System.out.println("\nSocket closed! (Connected)");
-						System.out.print("KVClient> ");
-					}
-					disconnect();
+//					if (this.isConnected) {
+//						System.out.println("\nSocket closed! (Connected)");
+//						System.out.print("KVClient> ");
+//					}
+//					disconnect();
 				} catch (IllegalArgumentException ia) {
 					logger.error("Server was terminated!");
 					disconnect();

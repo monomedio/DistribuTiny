@@ -1,14 +1,11 @@
 package client;
 
-import shared.messages.IKVMessage;
-
 public interface KVCommInterface extends Runnable {
 
 	/**
 	 * Establishes a connection to the KV Server.
 	 *
-	 * @throws Exception
-	 *             if connection could not be established.
+	 * @throws Exception if connection could not be established.
 	 */
 	public void connect() throws Exception;
 

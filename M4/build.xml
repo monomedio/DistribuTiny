@@ -60,6 +60,9 @@
     <delete file="${servermanifest.file}" />
     <delete file="${ecsjar.file}" />
     <delete file="${ecsmanifest.file}" />
+    <delete dir="sample_keys" />
+    <delete dir="sample_keys2" />
+    <delete dir="sample_keys3" />
   </target>
 
   <target name="cleanall" depends="clean"/>
