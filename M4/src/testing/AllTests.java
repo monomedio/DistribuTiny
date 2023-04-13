@@ -71,10 +71,10 @@ public class AllTests {
 			throw new RuntimeException(e);
 		}
 
-		System.out.println("CLEARING");
-		AllTests.clearStorage("sample_keys");
-		AllTests.clearStorage("sample_keys2");
-		AllTests.clearStorage("sample_keys3");
+//		System.out.println("CLEARING");
+//		AllTests.clearStorage("sample_keys");
+//		AllTests.clearStorage("sample_keys2");
+//		AllTests.clearStorage("sample_keys3");
 	}
 
 

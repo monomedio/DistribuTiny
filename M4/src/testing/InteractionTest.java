@@ -77,11 +77,11 @@ public class InteractionTest extends TestCase {
 
 		try {
 			kvClient.put(key, initialValue);
+			response = kvClient.receiveMessage();
 			kvClient.put(key, updatedValue);
 			response = kvClient.receiveMessage();
-//			System.out.println(response.getMessage());
-			response = kvClient.receiveMessage();
-			if (response.getStatus() == StatusType.PUT_SUCCESS) {
+			while (response.getStatus() != StatusType.PUT_UPDATE || response.getValue().compareTo(updatedValue) != 0) {
+//				System.out.println(response.getMessage());
 				response = kvClient.receiveMessage();
 			}
 		} catch (Exception e) {
@@ -124,6 +124,9 @@ public class InteractionTest extends TestCase {
 			kvClient.put(key, value);
 			kvClient.get(key);
 			response = kvClient.receiveMessage();
+			while (response.getValue().compareTo("bar") != 0) {
+				response = kvClient.receiveMessage();
+			}
 		} catch (Exception e) {
 			ex = e;
 		}
