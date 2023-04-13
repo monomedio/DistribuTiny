@@ -6,9 +6,13 @@ To start a KVServer:
 
 	java -jar m4-server.jar -b <ECSip:ECSport> -p <serverPort> -d <nameofdirectorytostorekeys>
 
+	To see all the available flags, run java -jar m4-server.jar
+
 To start ECS:
 
 	java -jar m4-ecs.jar -a <ECSip> -p <ECSport>
+
+	To see all the available flags, run java -jar m4-ecs.jar
 
 To start a KVClient:
 
